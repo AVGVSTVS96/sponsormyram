@@ -2,8 +2,8 @@
 
 import { useQuery } from "convex/react";
 import Link from "next/link";
-import { startTransition, useState } from "react";
 
+import { Copy } from "@/app/ui/copy";
 import { outline, lead, postList, solid } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -15,7 +15,6 @@ import { List } from "./list";
 import { Profile } from "./profile";
 
 const Band = ({ user }: { user: Doc<"users"> }) => {
-  const [copied, setCopied] = useState(false);
   const brand = lead("ram", useQuery(api.items.mine) ?? []);
   const url = `${origin(brand)}/${user.handle}`;
 
@@ -33,21 +32,9 @@ const Band = ({ user }: { user: Doc<"users"> }) => {
         </a>
       </div>
       <div className="flex flex-wrap gap-2">
-        <button
-          className={outline}
-          onClick={() => {
-            startTransition(async () => {
-              await navigator.clipboard.writeText(url);
-              setCopied(true);
-              setTimeout(() => {
-                setCopied(false);
-              }, 1600);
-            });
-          }}
-          type="button"
-        >
-          {copied ? "Copied ✓" : "Copy link"}
-        </button>
+        <Copy className={outline} text={url}>
+          Copy link
+        </Copy>
         <a className={solid} href={postList(brand, user.handle)}>
           Post your list on X
         </a>
