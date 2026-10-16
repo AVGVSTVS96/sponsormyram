@@ -7,9 +7,12 @@
   --color-rule: #e4e4e4;
   --color-pcb: #0b7a43;
   --color-gold: #d4a72c;
+  --color-coal: #0a0a0a;
+  --color-platter: #6b6b6b;
   --font-sans: var(--font-geist), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --radius-chip: 4px;
+  --radius-sheet: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,11 +29,12 @@
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.08em;
+  line-height: 16px;
   text-transform: uppercase;
 }
 
 @utility display {
-  font-size: clamp(64px, 12vw, 120px);
+  font-size: clamp(56px, 11vw, 120px);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.9;
@@ -48,4 +52,9 @@ html {
   color: var(--color-ink);
   color-scheme: light dark;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-coal);
 }

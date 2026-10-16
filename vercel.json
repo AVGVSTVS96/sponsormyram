@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bunx convex deploy --cmd 'bun run build'",
+  "redirects": [
+    {
+      "destination": "/avgvstvs96/:id",
+      "permanent": true,
+      "source": "/i/:id"
+    }
+  ]
+}
