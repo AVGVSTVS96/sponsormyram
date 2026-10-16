@@ -7,7 +7,15 @@ import { askOf } from "@/app/ui/data";
 import { Footer, Header } from "@/app/ui/frame";
 import { Strip } from "@/app/ui/glyphs";
 import { here } from "@/app/ui/here";
-import { itemUrl, number, outline, postItem, solid, who } from "@/app/ui/parts";
+import {
+  itemUrl,
+  number,
+  outline,
+  postItem,
+  solid,
+  stores,
+  who,
+} from "@/app/ui/parts";
 import { Sponsor } from "@/app/ui/sponsor";
 import type { Item } from "@/convex/people";
 import { brandOf, brands } from "@/lib/brand";
@@ -182,6 +190,24 @@ export const ItemPage = async ({
                 >
                   Or chip in money →
                 </Link>
+              )}
+              {open && (
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-rule pt-4 label whitespace-nowrap">
+                  <span className="text-muted">Buy one for them</span>
+                  <span className="flex gap-3">
+                    {stores(item).map(([store, href]) => (
+                      <a
+                        className="underline underline-offset-4 hover:text-muted"
+                        href={href}
+                        key={store}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {store} ↗
+                      </a>
+                    ))}
+                  </span>
+                </div>
               )}
             </div>
           </div>

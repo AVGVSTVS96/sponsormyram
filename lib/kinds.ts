@@ -81,22 +81,25 @@ export const conditions = {
 export const ramForms = {
   desktop: {
     label: "Desktop",
+    search: "desktop RAM",
     spec: "desktop UDIMM, non-ECC",
     suffix: "",
   },
   laptop: {
     label: "Laptop",
+    search: "SODIMM laptop RAM",
     spec: "laptop SODIMM",
     suffix: " SODIMM",
   },
   server: {
     label: "Server",
+    search: "RDIMM ECC server RAM",
     spec: "server RDIMM, ECC",
     suffix: " RDIMM",
   },
 } satisfies Record<
   RamAsk["form"],
-  { label: string; spec: string; suffix: string }
+  { label: string; search: string; spec: string; suffix: string }
 >;
 
 export const ramSpeeds = {
@@ -108,22 +111,25 @@ export const ramSpeeds = {
 export const ssdForms = {
   nvme: {
     label: "NVMe M.2",
+    search: "NVMe M.2 SSD",
     spec: "NVMe M.2 2280",
     title: "NVMe M.2",
   },
   sata: {
     label: "2.5″ SATA",
+    search: "2.5 SATA SSD",
     spec: "2.5″ SATA",
     title: "2.5″ SATA SSD",
   },
   u2: {
     label: "U.2",
+    search: "U.2 SSD",
     spec: "U.2 enterprise",
     title: "U.2 SSD",
   },
 } satisfies Record<
   SsdAsk["form"],
-  { label: string; spec: string; title: string }
+  { label: string; search: string; spec: string; title: string }
 >;
 
 export const sizes = {
@@ -167,6 +173,27 @@ export const title = (item: Ask) => {
   }
 
   return `${times}${item.title}`;
+};
+
+export const search = (item: Ask) => {
+  if (item.kind === "other") {
+    return item.title;
+  }
+
+  const amount =
+    item.count > 1 ? `${item.count}x${size(item.gb)}` : size(item.gb);
+
+  if (item.kind === "ram") {
+    const speed = item.speed === undefined ? "" : ` ${item.speed}`;
+
+    return `${amount} ${item.gen}${speed} ${ramForms[item.form].search}`;
+  }
+
+  if (item.kind === "ssd") {
+    return `${size(item.gb)} ${ssdForms[item.form].search}`;
+  }
+
+  return `${size(item.gb)} ${item.form} inch hard drive`;
 };
 
 export const specRows = (item: Ask) => {

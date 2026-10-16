@@ -2,7 +2,7 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import type { Item, Person } from "@/convex/people";
 import { brands, brandOf } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
-import { capacity, conditions, kindLabels, title } from "@/lib/kinds";
+import { capacity, conditions, kindLabels, search, title } from "@/lib/kinds";
 import { origin } from "@/lib/origin";
 
 import { installed } from "./rig";
@@ -126,6 +126,15 @@ export const thank = (handle: string, item: Item, sponsor: Named, at: number) =>
     `Thanks ${tag(sponsor)} for the ${title(item)}. It's in.`,
     `${itemUrl(handle, item)}?v=${at}`
   );
+
+export const stores = (item: Item) => {
+  const query = encodeURIComponent(search(item));
+
+  return [
+    ["eBay", `https://www.ebay.com/sch/i.html?_nkw=${query}`],
+    ["Amazon", `https://www.amazon.com/s?k=${query}`],
+  ] as const;
+};
 
 export const lead = (here: Brand, items: Item[]): Brand => {
   const first = items.find((item) => item.sponsor === undefined) ?? items[0];
