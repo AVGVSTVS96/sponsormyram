@@ -105,7 +105,7 @@ const Row = ({
     <li className="flex flex-col gap-4 border-t border-rule py-6 md:flex-row md:items-start md:gap-16">
       <div className="flex items-center justify-between md:w-8 md:pt-2">
         <span className="label text-muted">{number(index)}</span>
-        <div className="md:hidden">
+        <div className="min-w-0 md:hidden">
           <Chips item={item} />
         </div>
       </div>

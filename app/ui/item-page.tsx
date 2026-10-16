@@ -128,7 +128,7 @@ export const ItemPage = async ({
   return (
     <div className="flex min-h-dvh flex-col">
       <Header here={site} />
-      <main className="flex flex-1 flex-col">
+      <main className="flex flex-1 flex-col overflow-x-clip">
         <section className="flex flex-1 flex-col gap-10 px-6 pt-12 pb-16 md:px-16 md:pt-16">
           <div className="flex justify-between gap-4 label">
             <span>

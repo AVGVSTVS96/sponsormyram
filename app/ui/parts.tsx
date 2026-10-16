@@ -33,7 +33,7 @@ const tag = (person: Named) =>
     : who(person);
 
 const chip =
-  "label inline-flex h-6 items-center rounded-chip px-2 whitespace-nowrap";
+  "label inline-flex h-6 max-w-full items-center rounded-chip px-2 whitespace-nowrap";
 
 export const Chips = ({
   item,
@@ -48,9 +48,11 @@ export const Chips = ({
         <span
           className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-stamp" : ""}`}
         >
-          {item.sponsor.by === null
-            ? "Filled"
-            : `Sponsored by ${who(item.sponsor.by)}`}
+          <span className="truncate">
+            {item.sponsor.by === null
+              ? "Filled"
+              : `Sponsored by ${who(item.sponsor.by)}`}
+          </span>
         </span>
       );
     }
@@ -58,7 +60,9 @@ export const Chips = ({
     if (item.sending !== undefined) {
       return (
         <span className={`${chip} border-2 border-gold`}>
-          {who(item.sending.by)} is sending this
+          <span className="truncate">
+            {who(item.sending.by)} is sending this
+          </span>
         </span>
       );
     }
@@ -71,7 +75,7 @@ export const Chips = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex min-w-0 flex-wrap gap-2">
       <span className={`${chip} bg-ink text-paper`}>
         {kindLabels[item.kind]}
       </span>

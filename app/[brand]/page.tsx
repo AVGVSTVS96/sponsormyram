@@ -144,7 +144,7 @@ const Featured = async ({
                 <span className="label text-muted md:hidden">
                   {number(items.indexOf(item))}
                 </span>
-                <div className="flex-1 md:hidden">
+                <div className="min-w-0 flex-1 md:hidden">
                   <Chips item={item} />
                 </div>
                 {unclaimed ? (
