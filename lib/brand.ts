@@ -5,21 +5,21 @@ export const brands = {
     bay: "bay",
     part: "drive",
     pitch:
-      "Western Digital sold out of big drives for the rest of 2026. List what your NAS needs and let someone with a spare drive fill the bay.",
+      "Oct 2026: Western Digital is sold out of big drives for the rest of the year. List what your NAS needs and let someone with a spare drive fill the bay.",
     word: "HDD",
   },
   ram: {
     bay: "slot",
     part: "stick",
     pitch:
-      "32GB of DDR5 costs $400 now. List what your rig needs, post it, and let someone with a drawer of old sticks fill the slot.",
+      "Oct 2026: 32GB of DDR5 costs $400. List what your rig needs, post it, and let someone with a drawer of old sticks fill the slot.",
     word: "RAM",
   },
   ssd: {
     bay: "slot",
     part: "drive",
     pitch:
-      "An 8TB SSD costs more than its weight in gold now. List the drives you need, post it, and let someone with a spare M.2 fill the slot.",
+      "Oct 2026: an 8TB SSD costs more than its weight in gold. List the drives you need, post it, and let someone with a spare M.2 fill the slot.",
     word: "SSD",
   },
 } as const;
