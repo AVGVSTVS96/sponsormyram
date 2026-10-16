@@ -20,6 +20,7 @@ import {
   solid,
   sponsorItem,
 } from "@/app/ui/parts";
+import { ChipIn } from "@/app/ui/pay";
 import { installed, RigView } from "@/app/ui/rig";
 import { Roll } from "@/app/ui/roll";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -191,12 +192,16 @@ const UserPage = async ({ params }: PageProps<"/[brand]/[handle]">) => {
               my {brands[brand].word}.
             </h1>
             {user.note !== "" && <p>{user.note}</p>}
-            <a
-              className={`${outline} self-start`}
-              href={postList(brand, user.handle)}
-            >
-              Share this list
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a className={outline} href={postList(brand, user.handle)}>
+                Share this list
+              </a>
+              {user.pay.length > 0 && (
+                <a className={outline} href="#chip-in">
+                  Chip in ↓
+                </a>
+              )}
+            </div>
           </div>
           <Stat brand={brand} page={page} />
         </section>
@@ -231,6 +236,8 @@ const UserPage = async ({ params }: PageProps<"/[brand]/[handle]">) => {
             </p>
           )}
         </section>
+
+        <ChipIn owner={user.x === "" ? user.handle : user.x} pay={user.pay} />
 
         <section className="flex flex-col gap-6 bg-band px-6 py-12 text-white md:flex-row md:items-center md:justify-between md:px-16 dark:border-t dark:border-rule">
           <div className="flex flex-col gap-2">

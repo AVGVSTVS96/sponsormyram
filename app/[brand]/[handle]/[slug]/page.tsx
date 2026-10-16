@@ -151,6 +151,14 @@ const ItemPage = async ({ params }: PageProps<"/[brand]/[handle]/[slug]">) => {
                   Sponsor opens a post to @{user.x} on X
                 </span>
               )}
+              {user.pay.length > 0 && (
+                <Link
+                  className="pt-2 text-center label text-muted hover:text-ink"
+                  href={`/${user.handle}#chip-in`}
+                >
+                  Or chip in money →
+                </Link>
+              )}
             </div>
           </div>
         </section>
