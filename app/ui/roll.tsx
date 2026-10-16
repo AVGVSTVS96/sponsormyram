@@ -20,6 +20,7 @@ export const Roll = ({ text }: { text: string }) => {
                 {digits.map((digit) => (
                   <span key={digit}>{digit}</span>
                 ))}
+                <span>0</span>
               </span>
             </span>
           ) : (
