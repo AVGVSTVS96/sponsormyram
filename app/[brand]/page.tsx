@@ -15,11 +15,11 @@ import {
   plural,
   postItem,
   solid,
-  sponsorItem,
   who,
 } from "@/app/ui/parts";
 import { installed } from "@/app/ui/rig";
 import { Roll } from "@/app/ui/roll";
+import { Sponsor } from "@/app/ui/sponsor";
 import { brands, domain } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
 import { size, title } from "@/lib/kinds";
@@ -52,7 +52,7 @@ const steps = [
   ],
   [
     "Get it filled.",
-    "Someone ships you the part. You mark it filled and it turns gold, for good.",
+    "Someone says they're sending it and their handle goes on it in gold outline. When it lands, you turn it solid gold, for good.",
   ],
 ];
 
@@ -119,7 +119,7 @@ const Featured = async ({
       )}
       <ol>
         {asks.slice(0, 3).map((item) => {
-          const sponsor = sponsorItem(user, item);
+          const unclaimed = item.sending === undefined;
 
           return (
             <li
@@ -147,12 +147,15 @@ const Featured = async ({
                 <div className="flex-1 md:hidden">
                   <Chips item={item} />
                 </div>
-                <a
-                  className={sponsor === null ? outline : solid}
-                  href={sponsor ?? postItem(user.handle, item)}
-                >
-                  {sponsor === null ? "Share" : "Sponsor →"}
-                </a>
+                {unclaimed ? (
+                  <Sponsor className={solid} item={item} owner={user}>
+                    Sponsor →
+                  </Sponsor>
+                ) : (
+                  <a className={outline} href={postItem(user.handle, item)}>
+                    Share
+                  </a>
+                )}
               </div>
             </li>
           );
@@ -253,8 +256,8 @@ const Landing = async () => {
             </div>
             <ol>
               {feed.map(({ item, owner }, index) => {
-                const sponsor =
-                  item.sponsor === undefined ? sponsorItem(owner, item) : null;
+                const open =
+                  item.sponsor === undefined && item.sending === undefined;
 
                 return (
                   <li
@@ -284,16 +287,16 @@ const Landing = async () => {
                         <Chips item={item} />
                       </div>
                     </div>
-                    {sponsor === null ? (
+                    {open ? (
+                      <Sponsor className={solid} item={item} owner={owner}>
+                        Sponsor →
+                      </Sponsor>
+                    ) : (
                       <a
                         className={outline}
                         href={postItem(owner.handle, item)}
                       >
                         Share
-                      </a>
-                    ) : (
-                      <a className={solid} href={sponsor}>
-                        Sponsor →
                       </a>
                     )}
                   </li>

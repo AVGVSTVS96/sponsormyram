@@ -21,9 +21,10 @@ export const person = ({ _id, gh, handle, x }: Doc<"users">): Person => ({
 
 export const shown = async (ctx: QueryCtx, items: Doc<"items">[]) => {
   const ids = new Set(
-    items.flatMap(({ sponsor }) =>
-      sponsor?.by === undefined ? [] : [sponsor.by]
-    )
+    items.flatMap(({ sending, sponsor }) => [
+      ...(sending === undefined ? [] : [sending.by]),
+      ...(sponsor?.by === undefined ? [] : [sponsor.by]),
+    ])
   );
 
   const users = await Promise.all(
@@ -36,19 +37,27 @@ export const shown = async (ctx: QueryCtx, items: Doc<"items">[]) => {
     )
   );
 
-  return items.map(({ sponsor, ...item }) => ({
-    ...item,
-    sponsor:
-      sponsor === undefined
-        ? undefined
-        : {
-            at: sponsor.at,
-            by:
-              sponsor.by === undefined
-                ? null
-                : (people.get(sponsor.by) ?? null),
-          },
-  }));
+  return items.map(({ sending, sponsor, ...item }) => {
+    const sender = sending === undefined ? undefined : people.get(sending.by);
+
+    return {
+      ...item,
+      sending:
+        sending === undefined || sender === undefined
+          ? undefined
+          : { at: sending.at, by: sender },
+      sponsor:
+        sponsor === undefined
+          ? undefined
+          : {
+              at: sponsor.at,
+              by:
+                sponsor.by === undefined
+                  ? null
+                  : (people.get(sponsor.by) ?? null),
+            },
+    };
+  });
 };
 
 export type Item = Awaited<ReturnType<typeof shown>>[number];
@@ -207,22 +216,30 @@ export const bind = async (
 };
 
 const release = async (ctx: MutationCtx, page: Doc<"users">) => {
+  const sending = await ctx.db
+    .query("items")
+    .withIndex("by_sending_by", (q) => q.eq("sending.by", page._id))
+    .take(50);
+
   const sponsored = await ctx.db
     .query("items")
     .withIndex("by_sponsor_by", (q) => q.eq("sponsor.by", page._id))
     .take(500);
 
-  await Promise.all(
-    sponsored.map(async (item) => {
+  await Promise.all([
+    ...sending.map(async (item) => {
+      await ctx.db.patch("items", item._id, { sending: undefined });
+    }),
+    ...sponsored.map(async (item) => {
       await ctx.db.patch("items", item._id, {
         sponsor: { at: item.sponsor?.at ?? Date.now() },
       });
-    })
-  );
+    }),
+  ]);
 
   await revalidate(
     ctx,
-    sponsored.flatMap((item) => [
+    [...sending, ...sponsored].flatMap((item) => [
       `user:${item.userId}`,
       ...(item.kind === "other" ? [] : [`board:${brandOf(item.kind)}`]),
     ])

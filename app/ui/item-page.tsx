@@ -7,15 +7,8 @@ import { askOf } from "@/app/ui/data";
 import { Footer, Header } from "@/app/ui/frame";
 import { Strip } from "@/app/ui/glyphs";
 import { here } from "@/app/ui/here";
-import {
-  itemUrl,
-  number,
-  outline,
-  postItem,
-  solid,
-  sponsorItem,
-  who,
-} from "@/app/ui/parts";
+import { itemUrl, number, outline, postItem, solid, who } from "@/app/ui/parts";
+import { Sponsor } from "@/app/ui/sponsor";
 import type { Item } from "@/convex/people";
 import { brandOf, brands } from "@/lib/brand";
 import { parsePath } from "@/lib/handle";
@@ -67,6 +60,19 @@ const Stamp = ({ item }: { item: Item }) => {
     );
   }
 
+  if (item.sending !== undefined) {
+    return (
+      <div className={`${place} border-gold bg-paper`}>
+        <span className="font-mono text-2xl font-bold tracking-[0.12em] uppercase">
+          On its way
+        </span>
+        <span className="label">
+          {who(item.sending.by)} is sending this · {stamp(item.sending.at)}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 };
 
@@ -100,7 +106,7 @@ export const ItemPage = async ({
 
   const { index, item, total } = found;
   const owner = who(user);
-  const sponsor = item.sponsor === undefined ? sponsorItem(user, item) : null;
+  const open = item.sponsor === undefined && item.sending === undefined;
 
   const rows = [
     ...specRows(item),
@@ -154,17 +160,19 @@ export const ItemPage = async ({
               ))}
             </dl>
             <div className="flex flex-col gap-2 md:w-[280px]">
-              {sponsor !== null && (
-                <a className={solid} href={sponsor}>
+              {open && (
+                <Sponsor className={solid} item={item} owner={user}>
                   Sponsor this →
-                </a>
+                </Sponsor>
               )}
               <a className={outline} href={postItem(user.handle, item)}>
                 Share on X
               </a>
-              {sponsor !== null && (
+              {item.sponsor === undefined && (
                 <span className="pt-2 text-center label text-muted">
-                  Sponsor opens a post to {owner} on X
+                  {item.sending === undefined
+                    ? `Your handle goes on it. The address stays in ${user.x === undefined ? "a DM" : "X DMs"}.`
+                    : `${who(item.sending.by)} said they're sending this. It turns gold when it lands.`}
                 </span>
               )}
               {user.pay.length > 0 && (

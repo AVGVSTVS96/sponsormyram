@@ -101,6 +101,7 @@ export const edit = mutation({
         ...check(args.ask),
         oldSlugs: item.oldSlugs,
         rank: item.rank,
+        sending: item.sending,
         slug: item.slug,
         sponsor: item.sponsor,
         userId: item.userId,
@@ -178,7 +179,10 @@ export const fill = mutation({
     }
 
     await change(ctx, user._id, async () => {
-      await ctx.db.patch("items", item._id, { sponsor: { at: Date.now() } });
+      await ctx.db.patch("items", item._id, {
+        sending: undefined,
+        sponsor: { at: Date.now(), by: item.sending?.by },
+      });
     });
   },
 });
@@ -190,6 +194,83 @@ export const unfill = mutation({
 
     await change(ctx, user._id, async () => {
       await ctx.db.patch("items", item._id, { sponsor: undefined });
+    });
+  },
+});
+
+export const clear = mutation({
+  args: { id: v.id("items") },
+  handler: async (ctx, args) => {
+    const { item, user } = await ownItem(ctx, args.id);
+
+    await change(ctx, user._id, async () => {
+      await ctx.db.patch("items", item._id, { sending: undefined });
+    });
+  },
+});
+
+const maxSending = 5;
+
+const sendsOf = async (ctx: QueryCtx, userId: Id<"users">) =>
+  await ctx.db
+    .query("items")
+    .withIndex("by_sending_by", (q) => q.eq("sending.by", userId))
+    .take(maxSending + 1);
+
+export const send = mutation({
+  args: { id: v.id("items") },
+  handler: async (ctx, args) => {
+    const me = await owner(ctx);
+    const item = await ctx.db.get("items", args.id);
+
+    if (item === null) {
+      throw new ConvexError("That ask is gone.");
+    }
+
+    if (item.userId === me._id) {
+      throw new ConvexError("That's your own list.");
+    }
+
+    if (item.sponsor !== undefined) {
+      throw new ConvexError("Someone already filled this one.");
+    }
+
+    if (item.sending !== undefined) {
+      if (item.sending.by === me._id) {
+        return;
+      }
+
+      throw new ConvexError("Someone's already sending this one.");
+    }
+
+    const sending = await sendsOf(ctx, me._id);
+
+    if (sending.length >= maxSending) {
+      throw new ConvexError(
+        `${maxSending} at a time. Let one land before you take on another.`
+      );
+    }
+
+    await change(ctx, item.userId, async () => {
+      await ctx.db.patch("items", item._id, {
+        sending: { at: Date.now(), by: me._id },
+      });
+    });
+  },
+});
+
+export const unsend = mutation({
+  args: { id: v.id("items") },
+  handler: async (ctx, args) => {
+    const me = await owner(ctx);
+    const item = await ctx.db.get("items", args.id);
+
+    if (item?.sending?.by !== me._id) {
+      return;
+    }
+
+    await change(ctx, item.userId, async () => {
+      await ctx.db.patch("items", item._id, { sending: undefined });
     });
   },
 });
@@ -232,6 +313,41 @@ export const mine = query({
     }
 
     return await shown(ctx, await listOf(ctx, user._id));
+  },
+});
+
+export const sends = query({
+  args: {},
+  handler: async (ctx) => {
+    const found = await viewer(ctx);
+    const user = found?.user;
+
+    if (user === null || user === undefined) {
+      return [];
+    }
+
+    return await withOwners(ctx, await sendsOf(ctx, user._id));
+  },
+});
+
+export const state = query({
+  args: { id: v.id("items") },
+  handler: async (ctx, args) => {
+    const item = await ctx.db.get("items", args.id);
+    const found = await viewer(ctx);
+
+    if (item === null) {
+      return null;
+    }
+
+    const me = found?.user?._id ?? null;
+
+    return {
+      mine: item.userId === me,
+      sending: item.sending === undefined ? null : item.sending.by === me,
+      signedIn: found !== null,
+      sponsored: item.sponsor !== undefined,
+    };
   },
 });
 

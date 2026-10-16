@@ -13,6 +13,7 @@ import { origin } from "@/lib/origin";
 import { List } from "./list";
 import { Money } from "./money";
 import { Profile } from "./profile";
+import { Sends } from "./sends";
 
 const Band = ({ user }: { user: Doc<"users"> }) => {
   const brand = lead("ram", useQuery(api.items.mine) ?? []);
@@ -76,7 +77,8 @@ export const Dashboard = () => {
   return (
     <>
       <Band user={me.user} />
-      <List />
+      <List handle={me.user.handle} />
+      <Sends />
       <Money user={me.user} />
       <Profile user={me.user} />
     </>

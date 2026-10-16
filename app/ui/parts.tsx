@@ -27,6 +27,11 @@ export const who = ({ gh, handle, x }: Named) => {
   return gh === undefined ? `@${handle}` : `gh/${gh.handle}`;
 };
 
+const tag = (person: Named) =>
+  person.x === undefined && person.gh !== undefined
+    ? `github.com/${person.gh.handle}`
+    : who(person);
+
 const chip =
   "label inline-flex h-6 items-center rounded-chip px-2 whitespace-nowrap";
 
@@ -46,6 +51,14 @@ export const Chips = ({
           {item.sponsor.by === null
             ? "Filled"
             : `Sponsored by ${who(item.sponsor.by)}`}
+        </span>
+      );
+    }
+
+    if (item.sending !== undefined) {
+      return (
+        <span className={`${chip} border-2 border-gold`}>
+          {who(item.sending.by)} is sending this
         </span>
       );
     }
@@ -72,6 +85,9 @@ export const number = (index: number) => String(index + 1).padStart(2, "0");
 export const itemUrl = (handle: string, item: Pick<Item, "kind" | "slug">) =>
   `${origin(brandOf(item.kind))}/${handle}/${item.slug}`;
 
+export const sendUrl = (handle: string, item: Pick<Item, "slug">) =>
+  `${origin("ram")}/${handle}/${item.slug}#send`;
+
 export const intent = (text: string, url: string) =>
   `https://x.com/intent/post?${new URLSearchParams({ text, url }).toString()}`;
 
@@ -87,13 +103,29 @@ export const postList = (brand: Brand, handle: string) =>
     `${origin(brand)}/${handle}`
   );
 
-export const sponsorItem = (owner: Named, item: Item) =>
-  owner.x === undefined
-    ? null
-    : intent(
-        `@${owner.x.handle} I can sponsor your ${title(item)}`,
-        itemUrl(owner.handle, item)
-      );
+export const tellOwner = (owner: Named, item: Item) =>
+  intent(
+    owner.x === undefined
+      ? `I'm sending ${tag(owner)} their ${title(item)}.`
+      : `@${owner.x.handle} I'm sending your ${title(item)}.`,
+    itemUrl(owner.handle, item)
+  );
+
+export const reachOwner = (owner: Named) => {
+  if (owner.x !== undefined) {
+    return `https://x.com/messages/compose?recipient_id=${owner.x.id}`;
+  }
+
+  return owner.gh === undefined
+    ? `${origin("ram")}/${owner.handle}`
+    : `https://github.com/${owner.gh.handle}`;
+};
+
+export const thank = (handle: string, item: Item, sponsor: Named, at: number) =>
+  intent(
+    `Thanks ${tag(sponsor)} for the ${title(item)}. It's in.`,
+    `${itemUrl(handle, item)}?v=${at}`
+  );
 
 export const lead = (here: Brand, items: Item[]): Brand => {
   const first = items.find((item) => item.sponsor === undefined) ?? items[0];

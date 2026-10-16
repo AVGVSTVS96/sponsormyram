@@ -7,6 +7,7 @@ import { payTo } from "../lib/pay";
 const placed = {
   oldSlugs: v.optional(v.array(v.string())),
   rank: v.number(),
+  sending: v.optional(v.object({ at: v.number(), by: v.id("users") })),
   slug: v.string(),
   sponsor: v.optional(
     v.object({ at: v.number(), by: v.optional(v.id("users")) })
@@ -64,6 +65,7 @@ export default defineSchema(
       .index("by_userId_and_rank", ["userId", "rank"])
       .index("by_userId_and_slug", ["userId", "slug"])
       .index("by_kind", ["kind"])
+      .index("by_sending_by", ["sending.by"])
       .index("by_sponsor_by", ["sponsor.by"]),
     users: defineTable({
       authId: v.optional(v.string()),

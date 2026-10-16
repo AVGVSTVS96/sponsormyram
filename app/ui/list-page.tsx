@@ -18,12 +18,12 @@ import {
   postList,
   shortOf,
   solid,
-  sponsorItem,
   who,
 } from "@/app/ui/parts";
 import { ChipIn } from "@/app/ui/pay";
 import { installed, RigView } from "@/app/ui/rig";
 import { Roll } from "@/app/ui/roll";
+import { Sponsor } from "@/app/ui/sponsor";
 import type { Item } from "@/convex/people";
 import { brands } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
@@ -99,7 +99,7 @@ const Row = ({
   item: Item;
   user: Page["user"];
 }) => {
-  const sponsor = item.sponsor === undefined ? sponsorItem(user, item) : null;
+  const open = item.sponsor === undefined && item.sending === undefined;
 
   return (
     <li className="flex flex-col gap-4 border-t border-rule py-6 md:flex-row md:items-start md:gap-16">
@@ -122,10 +122,10 @@ const Row = ({
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 md:flex">
-        {sponsor !== null && (
-          <a className={solid} href={sponsor}>
+        {open && (
+          <Sponsor className={solid} item={item} owner={user}>
             Sponsor →
-          </a>
+          </Sponsor>
         )}
         <a className={outline} href={postItem(user.handle, item)}>
           Share

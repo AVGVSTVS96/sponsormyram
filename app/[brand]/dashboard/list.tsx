@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
-import { Chips, number } from "@/app/ui/parts";
+import { Chips, number, thank, who } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { Item } from "@/convex/people";
@@ -21,6 +21,7 @@ const askOf = ({
   _creationTime,
   _id,
   rank: _rank,
+  sending: _sending,
   slug: _slug,
   sponsor: _sponsor,
   userId: _userId,
@@ -72,13 +73,14 @@ const Toast = ({
   );
 };
 
-export const List = () => {
+export const List = ({ handle }: { handle: string }) => {
   const items = useQuery(api.items.mine);
   const add = useMutation(api.items.add);
   const edit = useMutation(api.items.edit);
   const restore = useMutation(api.items.restore);
   const fill = useMutation(api.items.fill);
   const unfill = useMutation(api.items.unfill);
+  const clear = useMutation(api.items.clear);
 
   const remove = useMutation(api.items.remove).withOptimisticUpdate(
     (store, { id }) => {
@@ -177,18 +179,27 @@ export const List = () => {
                 <Chips item={item} lands={item._id === landed} />
               </div>
               <div className="-mx-2.5 flex flex-wrap items-center lg:mx-0 lg:w-80 lg:flex-nowrap lg:justify-end lg:gap-5">
-                <button
-                  className={action}
-                  onClick={() => {
-                    setEditing({ id: item._id, type: "edit" });
-                  }}
-                  type="button"
-                >
-                  Edit
-                </button>
-                {item.sponsor === undefined ? (
+                {item.sponsor === undefined || item.sponsor.by === null ? (
                   <button
                     className={action}
+                    onClick={() => {
+                      setEditing({ id: item._id, type: "edit" });
+                    }}
+                    type="button"
+                  >
+                    Edit
+                  </button>
+                ) : (
+                  <a
+                    className="mx-2.5 inline-flex h-9 items-center rounded-chip border-2 border-ink bg-ink px-3 text-sm font-bold whitespace-nowrap text-paper transition-colors hover:bg-paper hover:text-ink lg:mx-0 lg:h-8"
+                    href={thank(handle, item, item.sponsor.by, item.sponsor.at)}
+                  >
+                    Thank {who(item.sponsor.by)}
+                  </a>
+                )}
+                {item.sponsor === undefined ? (
+                  <button
+                    className={`${action} ${item.sending === undefined ? "" : "text-ink"}`}
                     onClick={() => {
                       setLanded(item._id);
                       start(async () => {
@@ -197,7 +208,7 @@ export const List = () => {
                     }}
                     type="button"
                   >
-                    Mark filled
+                    {item.sending === undefined ? "Mark filled" : "It arrived"}
                   </button>
                 ) : (
                   <button
@@ -210,6 +221,19 @@ export const List = () => {
                     type="button"
                   >
                     Unfill
+                  </button>
+                )}
+                {item.sending !== undefined && (
+                  <button
+                    className={action}
+                    onClick={() => {
+                      start(async () => {
+                        await clear({ id: item._id });
+                      });
+                    }}
+                    type="button"
+                  >
+                    Clear
                   </button>
                 )}
                 <button

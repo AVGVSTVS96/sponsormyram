@@ -70,14 +70,21 @@ const ask = async (handle: string, slug: string): Promise<Card | null> => {
   const brand = brandOf(item.kind);
   const owner = who(user);
 
+  const footer = () => {
+    if (item.sponsor !== undefined) {
+      return `${owner} got this`;
+    }
+
+    return item.sending === undefined
+      ? `${owner} needs this · ${conditions[item.condition].chip}`
+      : `${who(item.sending.by)} is sending this`;
+  };
+
   return {
     brand,
     corner: `Ask ${number(index)}`,
     done: item.sponsor !== undefined,
-    footer:
-      item.sponsor === undefined
-        ? `${owner} needs this · ${conditions[item.condition].chip}`
-        : `${owner} got this`,
+    footer: footer(),
     stamp:
       item.sponsor === undefined
         ? undefined
