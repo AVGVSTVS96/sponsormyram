@@ -7,6 +7,7 @@ One app behind three brands: sponsormyram, sponsormyssd and sponsormyhdd. The ho
 - `bun dev` runs Convex and Next together.
 - `bun run check` before finishing. It runs typegen, type-aware oxlint and oxfmt.
 - `bun run fix` rewrites files and deletes prose comments.
+- Pushing `main` is the deploy: Vercel's Git build runs `convex deploy`, then `next build`. A change that needs new prod env or Convex data goes live in two steps: set those first (`bunx convex env set --prod`, `vercel env add`), then push. A failed Git build emails Bassim, and a `vercel deploy` next to a push only builds twice.
 
 ## Fence
 
