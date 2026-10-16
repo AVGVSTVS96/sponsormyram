@@ -1,7 +1,7 @@
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { api } from "@/convex/_generated/api";
 import { brandOf, brands } from "@/lib/brand";
@@ -98,6 +98,10 @@ const UserPage = async ({ params }: PageProps<"/[handle]">) => {
 
   if (page === null) {
     notFound();
+  }
+
+  if (page.user.handle !== handle) {
+    permanentRedirect(`/${page.user.handle}`);
   }
 
   const { items, user } = page;

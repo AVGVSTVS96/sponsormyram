@@ -38,7 +38,7 @@ export const bassim = internalMutation({
       kind: "ram",
       note: "Fills the empty slot and retires the odd 8GB pair that drags every stick down to 2400 MT/s.",
       rank: 1,
-      slug: "ddr4-2x32",
+      slug: "ddr4-4x32",
       speed: 3200,
       userId,
     });

@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
+import type * as counters from "../counters.js";
 import type * as items from "../items.js";
 import type * as model from "../model.js";
+import type * as revalidate from "../revalidate.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
@@ -20,8 +23,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
+  counters: typeof counters;
   items: typeof items;
   model: typeof model;
+  revalidate: typeof revalidate;
   seed: typeof seed;
   users: typeof users;
 }>;

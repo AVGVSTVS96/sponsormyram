@@ -59,6 +59,8 @@ export const kinds = [
   "other",
 ] as const satisfies readonly Kind[];
 
+export const maxAsks = 30;
+
 export const kindLabels = {
   hdd: "HDD",
   other: "Other",

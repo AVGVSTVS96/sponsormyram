@@ -8,7 +8,8 @@ import {
   xProblem,
 } from "../lib/handle";
 import { mutation, query } from "./_generated/server";
-import { byHandle, owner, viewer } from "./model";
+import { change, revalidate } from "./counters";
+import { byHandle, listOf, owner, pastHandle, viewer } from "./model";
 import { rig } from "./schema";
 
 export const me = query({
@@ -45,11 +46,7 @@ export const available = query({
 
     const found = await viewer(ctx);
 
-    const mine =
-      holder.tokenIdentifier !== undefined &&
-      holder.tokenIdentifier === found?.identity.tokenIdentifier;
-
-    return mine ? null : "Taken";
+    return holder._id === found?.user?._id ? null : "Taken";
   },
 });
 
@@ -106,6 +103,8 @@ export const claim = mutation({
       throw new ConvexError("Taken");
     }
 
+    await revalidate(ctx, [`handle:${handle}`]);
+
     return await ctx.db.insert("users", {
       handle,
       name: found.identity.name ?? "",
@@ -116,25 +115,49 @@ export const claim = mutation({
   },
 });
 
-export const save = mutation({
-  args: {
-    handle: v.string(),
-    name: v.string(),
-    note: v.string(),
-    x: v.string(),
-  },
+export const rename = mutation({
+  args: { handle: v.string() },
   handler: async (ctx, args) => {
     const user = await owner(ctx);
     const handle = cleanHandle(args.handle);
-    const x = cleanX(args.x);
-    const problem = handleProblem(handle) ?? xProblem(x);
+    const problem = handleProblem(handle);
 
     if (problem !== null) {
       throw new ConvexError(problem);
     }
 
-    if (handle !== user.handle && (await byHandle(ctx, handle)) !== null) {
+    if (handle === user.handle) {
+      return;
+    }
+
+    const holder = await byHandle(ctx, handle);
+
+    if (holder !== null && holder._id !== user._id) {
       throw new ConvexError("Taken");
+    }
+
+    await change(ctx, user._id, async () => {
+      const reclaimed = await pastHandle(ctx, handle);
+
+      if (reclaimed !== null) {
+        await ctx.db.delete("handles", reclaimed._id);
+      }
+
+      await ctx.db.insert("handles", { handle: user.handle, userId: user._id });
+      await ctx.db.patch("users", user._id, { handle });
+    });
+  },
+});
+
+export const save = mutation({
+  args: { name: v.string(), note: v.string(), x: v.string() },
+  handler: async (ctx, args) => {
+    const user = await owner(ctx);
+    const x = cleanX(args.x);
+    const problem = xProblem(x);
+
+    if (problem !== null) {
+      throw new ConvexError(problem);
     }
 
     if (args.note.length > 400 || args.name.length > 60) {
@@ -143,11 +166,12 @@ export const save = mutation({
       );
     }
 
-    await ctx.db.patch("users", user._id, {
-      handle,
-      name: args.name.trim(),
-      note: args.note.trim(),
-      x,
+    await change(ctx, user._id, async () => {
+      await ctx.db.patch("users", user._id, {
+        name: args.name.trim(),
+        note: args.note.trim(),
+        x,
+      });
     });
   },
 });
@@ -168,7 +192,9 @@ export const saveRig = mutation({
       );
     }
 
-    await ctx.db.patch("users", user._id, { rig: args.rig });
+    await change(ctx, user._id, async () => {
+      await ctx.db.patch("users", user._id, { rig: args.rig });
+    });
   },
 });
 
@@ -181,15 +207,12 @@ export const page = query({
       return null;
     }
 
-    const items = await ctx.db
-      .query("items")
-      .withIndex("by_userId_and_rank", (q) => q.eq("userId", user._id))
-      .take(100);
-
     return {
-      items,
+      items: await listOf(ctx, user._id),
       user: {
+        _id: user._id,
         handle: user.handle,
+        hidden: user.hidden === true,
         name: user.name,
         note: user.note,
         rig: user.rig,

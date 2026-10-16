@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
+import { useState, useTransition } from "react";
 
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -9,9 +10,11 @@ import { cleanHandle } from "@/lib/handle";
 import { stickSizes } from "@/lib/kinds";
 
 import { Ram } from "../ui/glyphs";
+import { solid } from "../ui/parts";
 import { slotName } from "../ui/rig";
 import { useAutosave } from "./autosave";
 import { field } from "./picker";
+import { attempt } from "./say";
 
 type Rig = NonNullable<Doc<"users">["rig"]>;
 
@@ -34,19 +37,80 @@ const Status = ({ text }: { text: string }) => (
   </span>
 );
 
+const Handle = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
+  const rename = useMutation(api.users.rename);
+  const [handle, setHandle] = useState(user.handle);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, start] = useTransition();
+  const next = cleanHandle(handle);
+  const problem = useQuery(api.users.available, { handle: next });
+  const changed = next !== user.handle;
+
+  const note = () => {
+    if (!changed) {
+      return error;
+    }
+
+    if (problem === undefined) {
+      return "Checking…";
+    }
+
+    return problem ?? error ?? `Links to /${user.handle} will forward here.`;
+  };
+
+  return (
+    <form
+      action={() => {
+        start(async () => {
+          setError(await attempt(async () => await rename({ handle: next })));
+        });
+      }}
+      className="flex flex-col gap-2 md:flex-row md:items-start"
+    >
+      <span className="pt-3 label text-muted md:w-36 md:shrink-0">Handle</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex gap-2">
+          <div
+            className={`${field} flex h-11 min-w-0 flex-1 items-center font-mono`}
+          >
+            <span className="text-muted">{domain(origin)}/</span>
+            <input
+              aria-label="Your handle"
+              className="min-w-0 flex-1 bg-transparent outline-none"
+              onChange={(event) => {
+                setHandle(event.target.value);
+                setError(null);
+              }}
+              value={handle}
+            />
+          </div>
+          {changed && (
+            <button
+              className={`${solid} h-11`}
+              disabled={busy || problem !== null}
+              type="submit"
+            >
+              {busy ? "Saving…" : "Save"}
+            </button>
+          )}
+        </div>
+        <span className="label text-muted">{note()}</span>
+      </div>
+    </form>
+  );
+};
+
 const You = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
   const save = useMutation(api.users.save);
 
   const [you, setYou, status] = useAutosave(
-    { handle: user.handle, name: user.name, note: user.note, x: user.x },
+    { name: user.name, note: user.note, x: user.x },
     async (value) => {
-      await save({ ...value, handle: cleanHandle(value.handle) });
+      await save(value);
 
       return null;
     }
   );
-
-  const problem = useQuery(api.users.available, { handle: you.handle });
 
   return (
     <div className="flex flex-col gap-4">
@@ -54,6 +118,7 @@ const You = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
         <h2 className="title">You</h2>
         <Status text={status} />
       </div>
+      <Handle origin={origin} user={user} />
       <Line label="Name">
         <input
           className={`${field} h-11 font-mono`}
@@ -73,21 +138,6 @@ const You = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
           placeholder="@ your X handle"
           value={you.x}
         />
-      </Line>
-      <Line label="Handle">
-        <div className={`${field} flex h-11 items-center font-mono`}>
-          <span className="text-muted">{domain(origin)}/</span>
-          <input
-            className="min-w-0 flex-1 bg-transparent outline-none"
-            onChange={(event) => {
-              setYou({ ...you, handle: event.target.value });
-            }}
-            value={you.handle}
-          />
-        </div>
-        {problem !== undefined && problem !== null && (
-          <span className="pt-2 label">{problem}</span>
-        )}
       </Line>
       <Line label="Note">
         <textarea

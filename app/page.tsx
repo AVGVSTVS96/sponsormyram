@@ -77,9 +77,9 @@ const Landing = async () => {
           </div>
           <div className="flex flex-col gap-2 md:items-end">
             <span className="label text-muted">Collectively short</span>
-            <span className="display text-pcb">{size(board.short)}</span>
+            <span className="display text-pcb">{size(board.totals.short)}</span>
             <span className="label text-muted">
-              of {word} · {plural(board.lists, "list")}
+              of {word} · {plural(board.totals.lists, "list")}
             </span>
           </div>
         </section>
@@ -90,7 +90,7 @@ const Landing = async () => {
               Every {part} asked for on the site, one {bay} each
             </span>
             <span className="text-muted">
-              {board.filled} of {board.slots.length} filled
+              {board.totals.filled} of {board.totals.sticks} filled
             </span>
           </div>
           <div className="flex flex-wrap gap-3">

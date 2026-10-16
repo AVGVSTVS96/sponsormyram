@@ -18,9 +18,9 @@ const Image = async () => {
 
   return await card({
     brand: site.brand,
-    corner: `${board.slots.length} asks`,
+    corner: `${board.totals.open} ${board.totals.open === 1 ? "ask" : "asks"}`,
     domain: domain(site.origin(site.brand)),
-    footer: `Collectively short ${gb(board.short)}`,
+    footer: `Collectively short ${gb(board.totals.short)}`,
     title: `Sponsor my ${brands[site.brand].word}.`,
   });
 };

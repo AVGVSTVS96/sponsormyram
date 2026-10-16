@@ -22,9 +22,9 @@ const Image = async ({
   params: Promise<{ handle: string; slug: string }>;
 }) => {
   const site = await here();
-  const found = await fetchQuery(api.items.one, await params);
+  const loaded = await fetchQuery(api.items.one, await params);
 
-  if (found === null) {
+  if (loaded === null || loaded.found === null) {
     return await card({
       brand: site.brand,
       corner: "",
@@ -34,7 +34,8 @@ const Image = async ({
     });
   }
 
-  const { index, item, user } = found;
+  const { user } = loaded;
+  const { index, item } = loaded.found;
   const brand = brandOf(item.kind);
   const owner = `@${user.x === "" ? user.handle : user.x}`;
 

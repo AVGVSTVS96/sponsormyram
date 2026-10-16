@@ -1,7 +1,7 @@
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 
 import { api } from "@/convex/_generated/api";
 import { brandOf, brands } from "@/lib/brand";
@@ -29,13 +29,14 @@ export const generateMetadata = async ({
   params,
 }: PageProps<"/[handle]/[slug]">): Promise<Metadata> => {
   const site = await here();
-  const found = await load(params);
+  const loaded = await load(params);
 
-  if (found === null) {
+  if (loaded === null || loaded.found === null) {
     return {};
   }
 
-  const { item, user } = found;
+  const { user } = loaded;
+  const { item } = loaded.found;
 
   return {
     alternates: { canonical: itemUrl(site, user.handle, item) },
@@ -46,13 +47,24 @@ export const generateMetadata = async ({
 
 const ItemPage = async ({ params }: PageProps<"/[handle]/[slug]">) => {
   const site = await here();
-  const found = await load(params);
+  const { handle, slug } = await params;
+  const loaded = await load(params);
 
-  if (found === null) {
+  if (loaded === null) {
     notFound();
   }
 
-  const { index, item, total, user } = found;
+  const { found, user } = loaded;
+
+  if (found === null) {
+    redirect(`/${user.handle}`);
+  }
+
+  if (user.handle !== handle || found.item.slug !== slug) {
+    permanentRedirect(`/${user.handle}/${found.item.slug}`);
+  }
+
+  const { index, item, total } = found;
   const owner = user.x === "" ? user.handle : user.x;
 
   const sponsor =
