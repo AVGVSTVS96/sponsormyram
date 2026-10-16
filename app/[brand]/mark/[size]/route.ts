@@ -8,7 +8,7 @@ export const generateStaticParams = () =>
 
 export const GET = async (
   _request: Request,
-  { params }: RouteContext<"/[brand]/icon/[size]">
+  { params }: RouteContext<"/[brand]/mark/[size]">
 ) => {
   const { brand, size } = await params;
 

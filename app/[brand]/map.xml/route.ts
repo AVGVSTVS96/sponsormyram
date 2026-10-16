@@ -6,7 +6,7 @@ export const generateStaticParams = () => brandList.map((brand) => ({ brand }));
 
 export const GET = async (
   _request: Request,
-  { params }: RouteContext<"/[brand]/sitemap.xml">
+  { params }: RouteContext<"/[brand]/map.xml">
 ) => {
   const { brand: raw } = await params;
   const brand = toBrand(raw);

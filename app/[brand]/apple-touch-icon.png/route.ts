@@ -1,15 +1,13 @@
-import { iconSvg } from "@/app/ui/mark";
+import { iconPng } from "@/app/ui/mark";
 import { brandList, toBrand } from "@/lib/brand";
 
 export const generateStaticParams = () => brandList.map((brand) => ({ brand }));
 
 export const GET = async (
   _request: Request,
-  { params }: RouteContext<"/[brand]/icon.svg">
+  { params }: RouteContext<"/[brand]/apple-touch-icon.png">
 ) => {
   const { brand } = await params;
 
-  return new Response(iconSvg(toBrand(brand)), {
-    headers: { "content-type": "image/svg+xml" },
-  });
+  return iconPng(toBrand(brand), 180, false);
 };

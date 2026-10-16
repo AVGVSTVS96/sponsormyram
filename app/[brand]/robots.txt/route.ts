@@ -19,7 +19,7 @@ export const GET = async (
       "Disallow: /callback",
       "Disallow: /api/",
       "",
-      `Sitemap: ${home}/sitemap.xml`,
+      `Sitemap: ${home}/map.xml`,
       "",
     ].join("\n")
   );

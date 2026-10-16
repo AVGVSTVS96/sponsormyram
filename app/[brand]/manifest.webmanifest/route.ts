@@ -13,9 +13,9 @@ export const GET = async (
     background_color: "#ffffff",
     display: "standalone",
     icons: [
-      { sizes: "any", src: "/icon.svg", type: "image/svg+xml" },
-      { sizes: "192x192", src: "/icon/192", type: "image/png" },
-      { sizes: "512x512", src: "/icon/512", type: "image/png" },
+      { sizes: "any", src: "/mark.svg", type: "image/svg+xml" },
+      { sizes: "192x192", src: "/mark/192", type: "image/png" },
+      { sizes: "512x512", src: "/mark/512", type: "image/png" },
     ],
     name: `Sponsor my ${brands[brand].word}`,
     short_name: `sponsormy${brand}`,

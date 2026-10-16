@@ -18,10 +18,10 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
   return {
     icons: {
-      apple: "/apple-icon.png",
+      apple: "/apple-touch-icon.png",
       icon: [
         { sizes: "32x32", url: "/favicon.ico" },
-        { type: "image/svg+xml", url: "/icon.svg" },
+        { type: "image/svg+xml", url: "/mark.svg" },
       ],
     },
     manifest: "/manifest.webmanifest",
