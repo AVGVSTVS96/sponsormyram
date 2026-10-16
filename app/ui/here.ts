@@ -1,10 +1,5 @@
-import "server-only";
-import { headers } from "next/headers";
+import { brand } from "next/root-params";
 
-import { site } from "@/lib/brand";
+import { toBrand } from "@/lib/brand";
 
-export const here = async () => {
-  const list = await headers();
-
-  return site(list.get("host") ?? "");
-};
+export const here = async () => toBrand(await brand());

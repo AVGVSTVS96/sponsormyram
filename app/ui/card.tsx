@@ -198,14 +198,15 @@ const art = { hdd: HddArt, ram: RamArt, ssd: SsdArt } satisfies Record<
   () => React.JSX.Element
 >;
 
-interface Card {
+export interface Card {
   brand: Brand;
   corner: string;
-  domain: string;
   done?: boolean;
-  footer: string;
+  figure?: string;
+  footer?: string;
   stamp?: string;
   title: string;
+  top: string;
 }
 
 const titleSize = (text: string) => {
@@ -216,19 +217,74 @@ const titleSize = (text: string) => {
   return text.length <= 28 ? 96 : 72;
 };
 
-export const card = async ({
+const headlineSize = (text: string) =>
+  text.length <= 11 ? 196 : Math.floor((196 * 11) / text.length);
+
+const Person = ({ brand, corner, figure = "", title, top }: Card) => {
+  const Art = art[brand];
+  const stacked = brand === "hdd";
+
+  return (
+    <div
+      style={{
+        background: color.paper,
+        color: color.ink,
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "Geist",
+        height: "100%",
+        justifyContent: "space-between",
+        padding: stacked ? "56px 520px 128px 64px" : "56px 64px 128px",
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <Art />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          ...mono,
+          fontSize: 36,
+          lineHeight: "44px",
+        }}
+      >
+        <span>{top}</span>
+        <span style={{ color: color.muted }}>{corner}</span>
+      </div>
+      <div
+        style={{
+          alignItems: stacked ? "flex-start" : "baseline",
+          display: "flex",
+          flexDirection: stacked ? "column" : "row",
+          fontSize: stacked ? 196 : headlineSize(`${figure} ${title}`),
+          fontWeight: 800,
+          gap: stacked ? 0 : 36,
+          letterSpacing: "-0.05em",
+          lineHeight: stacked ? "176px" : 0.9,
+          whiteSpace: "nowrap",
+        }}
+      >
+        <span style={{ color: color.pcb }}>{figure}</span>
+        <span>{title}</span>
+      </div>
+    </div>
+  );
+};
+
+const Classic = ({
   brand,
   corner,
-  domain,
   done = false,
-  footer,
+  footer = "",
   stamp,
   title,
+  top,
 }: Card) => {
   const Art = art[brand];
   const width = brand === "hdd" ? 620 : 1060;
 
-  return new ImageResponse(
+  return (
     <div
       style={{
         background: color.paper,
@@ -252,7 +308,7 @@ export const card = async ({
           ...mono,
         }}
       >
-        <span>{domain}</span>
+        <span>{top}</span>
         <span style={{ color: color.muted }}>{corner}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -300,7 +356,13 @@ export const card = async ({
           <span style={mono}>{stamp}</span>
         </div>
       )}
-    </div>,
+    </div>
+  );
+};
+
+export const card = async (props: Card, headers?: Record<string, string>) =>
+  new ImageResponse(
+    props.figure === undefined ? <Classic {...props} /> : <Person {...props} />,
     {
       ...size,
       fonts: [
@@ -316,6 +378,6 @@ export const card = async ({
           weight: 700,
         },
       ],
+      headers,
     }
   );
-};

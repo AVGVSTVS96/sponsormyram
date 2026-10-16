@@ -34,40 +34,18 @@ export const brandList = [
 
 export const brandOf = (kind: Kind): Brand => (kind === "other" ? "ram" : kind);
 
-const hostPattern = /^(?:www\.)?sponsormy(?<brand>ram|ssd|hdd)\.(?<rest>.+)$/u;
+export const isBrand = (value: string): value is Brand =>
+  brandList.some((brand) => brand === value);
 
-const localPattern =
-  /^(?:(?<brand>ram|ssd|hdd)\.)?(?<rest>localhost(?::\d+)?)$/u;
+export const toBrand = (value = ""): Brand => (isBrand(value) ? value : "ram");
 
-export interface Site {
-  brand: Brand;
-  origin: (to: Brand) => string;
-}
+const hostPattern =
+  /^(?:www\.)?sponsormy(?<brand>ram|ssd|hdd)\.|^(?<local>ram|ssd|hdd)\.localhost(?::\d+)?$/u;
 
-const parse = (brand?: string): Brand =>
-  brand === "ssd" || brand === "hdd" ? brand : "ram";
+export const brandFrom = (host: string) => {
+  const groups = hostPattern.exec(host)?.groups;
 
-export const site = (host: string): Site => {
-  const named = hostPattern.exec(host)?.groups;
-
-  if (named !== undefined) {
-    return {
-      brand: parse(named.brand),
-      origin: (to) => `https://sponsormy${to}.${named.rest}`,
-    };
-  }
-
-  const local = localPattern.exec(host)?.groups;
-
-  if (local !== undefined) {
-    return {
-      brand: parse(local.brand),
-      origin: (to) =>
-        to === "ram" ? `http://${local.rest}` : `http://${to}.${local.rest}`,
-    };
-  }
-
-  return { brand: "ram", origin: () => `https://${host}` };
+  return toBrand(groups?.brand ?? groups?.local);
 };
 
-export const domain = (origin: string) => origin.replace(/^https?:\/\//u, "");
+export const domain = (url: string) => url.replace(/^https?:\/\//u, "");

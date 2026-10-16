@@ -1,15 +1,12 @@
-import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { permanentRedirect, redirect } from "next/navigation";
 
-import { api } from "@/convex/_generated/api";
-import { brandOf, brands } from "@/lib/brand";
-import { conditions, specRows, title } from "@/lib/kinds";
-
-import { Footer, Header } from "../../ui/frame";
-import { Strip } from "../../ui/glyphs";
-import { here } from "../../ui/here";
+import { cardImage } from "@/app/ui/cards";
+import { askOf } from "@/app/ui/data";
+import { Footer, Header } from "@/app/ui/frame";
+import { Strip } from "@/app/ui/glyphs";
+import { here } from "@/app/ui/here";
 import {
   itemUrl,
   number,
@@ -17,19 +14,25 @@ import {
   postItem,
   solid,
   sponsorItem,
-} from "../../ui/parts";
+} from "@/app/ui/parts";
+import { brandOf, brands } from "@/lib/brand";
+import { conditions, specRows, title } from "@/lib/kinds";
 
-const load = async (params: PageProps<"/[handle]/[slug]">["params"]) =>
-  await fetchQuery(api.items.one, await params);
+export const ensureStatic = "navigation";
+
+export const generateStaticParams = () => [
+  { handle: "avgvstvs96", slug: "ddr4-4x32" },
+];
 
 const stamp = (at: number) =>
   new Date(at).toLocaleDateString("en-US", { day: "numeric", month: "short" });
 
 export const generateMetadata = async ({
   params,
-}: PageProps<"/[handle]/[slug]">): Promise<Metadata> => {
+}: PageProps<"/[brand]/[handle]/[slug]">): Promise<Metadata> => {
   const site = await here();
-  const loaded = await load(params);
+  const { handle, slug } = await params;
+  const loaded = await askOf(handle, slug);
 
   if (loaded === null || loaded.found === null) {
     return {};
@@ -39,19 +42,23 @@ export const generateMetadata = async ({
   const { item } = loaded.found;
 
   return {
-    alternates: { canonical: itemUrl(site, user.handle, item) },
+    alternates: { canonical: itemUrl(user.handle, item) },
     description: item.note === "" ? `@${user.handle} needs this.` : item.note,
+    openGraph: {
+      images: await cardImage(site, [user.handle, item.slug], title(item)),
+    },
+    robots: user.hidden ? { index: false } : undefined,
     title: `${title(item)} · Sponsor my ${brands[brandOf(item.kind)].word}`,
   };
 };
 
-const ItemPage = async ({ params }: PageProps<"/[handle]/[slug]">) => {
+const ItemPage = async ({ params }: PageProps<"/[brand]/[handle]/[slug]">) => {
   const site = await here();
   const { handle, slug } = await params;
-  const loaded = await load(params);
+  const loaded = await askOf(handle, slug);
 
   if (loaded === null) {
-    notFound();
+    redirect(`/${encodeURIComponent(handle)}`);
   }
 
   const { found, user } = loaded;
@@ -68,9 +75,7 @@ const ItemPage = async ({ params }: PageProps<"/[handle]/[slug]">) => {
   const owner = user.x === "" ? user.handle : user.x;
 
   const sponsor =
-    item.sponsor === undefined
-      ? sponsorItem(site, user.handle, user.x, item)
-      : null;
+    item.sponsor === undefined ? sponsorItem(user.handle, user.x, item) : null;
 
   const rows = [
     ...specRows(item),
@@ -94,10 +99,11 @@ const ItemPage = async ({ params }: PageProps<"/[handle]/[slug]">) => {
               </Link>
             </span>
             <Link
-              className="text-muted hover:text-ink"
+              className="shrink-0 text-muted hover:text-ink"
               href={`/${user.handle}`}
             >
-              ← The whole list
+              ← <span className="md:hidden">List</span>
+              <span className="hidden md:inline">The whole list</span>
             </Link>
           </div>
           <div className="relative">
@@ -137,8 +143,8 @@ const ItemPage = async ({ params }: PageProps<"/[handle]/[slug]">) => {
                   Sponsor this →
                 </a>
               )}
-              <a className={outline} href={postItem(site, user.handle, item)}>
-                Post on X
+              <a className={outline} href={postItem(user.handle, item)}>
+                Share on X
               </a>
               {sponsor !== null && (
                 <span className="pt-2 text-center label text-muted">

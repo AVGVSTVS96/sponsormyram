@@ -1,21 +1,32 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { brands } from "@/lib/brand";
+import { here } from "@/app/ui/here";
+import { brandList, brands } from "@/lib/brand";
+import { origin } from "@/lib/origin";
 
-import { here } from "./ui/here";
-
-import "./globals.css";
+import "@/app/globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
+export const generateStaticParams = () => brandList.map((brand) => ({ brand }));
+
 export const generateMetadata = async (): Promise<Metadata> => {
-  const site = await here();
+  const brand = await here();
 
   return {
-    metadataBase: new URL(site.origin(site.brand)),
-    title: `Sponsor my ${brands[site.brand].word}`,
+    icons: {
+      apple: "/apple-icon.png",
+      icon: [
+        { sizes: "32x32", url: "/favicon.ico" },
+        { type: "image/svg+xml", url: "/icon.svg" },
+      ],
+    },
+    manifest: "/manifest.webmanifest",
+    metadataBase: new URL(origin(brand)),
+    title: `Sponsor my ${brands[brand].word}`,
     twitter: { card: "summary_large_image" },
   };
 };
@@ -27,11 +38,11 @@ export const viewport: Viewport = {
   ],
 };
 
-const RootLayout = ({ children, modal }: LayoutProps<"/">) => (
+const RootLayout = ({ children }: LayoutProps<"/[brand]">) => (
   <html className={`${sans.variable} ${mono.variable}`} lang="en">
     <body className="font-sans text-base leading-normal">
       {children}
-      {modal}
+      <Analytics />
     </body>
   </html>
 );

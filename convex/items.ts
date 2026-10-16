@@ -298,6 +298,7 @@ export const one = query({
           ? null
           : { index, item: items[index], total: items.length },
       user: {
+        _id: user._id,
         handle: user.handle,
         hidden: user.hidden === true,
         name: user.name,

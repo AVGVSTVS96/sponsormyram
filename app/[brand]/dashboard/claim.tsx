@@ -3,23 +3,23 @@
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 
+import { solid } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import { domain } from "@/lib/brand";
 import { cleanHandle, handleRule } from "@/lib/handle";
+import { origin } from "@/lib/origin";
 
-import { solid } from "../ui/parts";
 import { field } from "./picker";
 import { attempt } from "./say";
 
-export const Claim = ({
-  origin,
-  suggestion,
-}: {
-  origin: string;
-  suggestion: string;
-}) => {
+const wanted = (suggestion: string) =>
+  new URLSearchParams(window.location.search).get("claim") ??
+  localStorage.getItem("claim") ??
+  suggestion;
+
+export const Claim = ({ suggestion }: { suggestion: string }) => {
   const claim = useMutation(api.users.claim);
-  const [handle, setHandle] = useState(suggestion);
+  const [handle, setHandle] = useState(() => wanted(suggestion));
   const [x, setX] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -31,14 +31,20 @@ export const Claim = ({
     <section className="grid grid-cols-1 gap-12 px-6 py-12 md:grid-cols-2 md:gap-16 md:px-16 md:py-16">
       <form
         action={async () => {
-          setError(await attempt(async () => await claim({ handle, x })));
+          const failure = await attempt(async () => await claim({ handle, x }));
+
+          setError(failure);
+
+          if (failure === null) {
+            localStorage.removeItem("claim");
+          }
         }}
         className="flex flex-col gap-4"
       >
         <span className="label">Step 1 of 2</span>
         <h1 className="title">Claim your page.</h1>
         <div className={`${field} flex h-11 items-center font-mono`}>
-          <span className="text-muted">{domain(origin)}/</span>
+          <span className="text-muted">{domain(origin("ram"))}/</span>
           <input
             aria-label="Your handle"
             autoFocus

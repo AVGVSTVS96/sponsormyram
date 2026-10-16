@@ -3,15 +3,16 @@
 import { useMutation, useQuery } from "convex/react";
 import { useState, useTransition } from "react";
 
+import { Ram } from "@/app/ui/glyphs";
+import { solid } from "@/app/ui/parts";
+import { slotName } from "@/app/ui/rig";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { domain } from "@/lib/brand";
 import { cleanHandle } from "@/lib/handle";
 import { stickSizes } from "@/lib/kinds";
+import { origin } from "@/lib/origin";
 
-import { Ram } from "../ui/glyphs";
-import { solid } from "../ui/parts";
-import { slotName } from "../ui/rig";
 import { useAutosave } from "./autosave";
 import { field } from "./picker";
 import { attempt } from "./say";
@@ -37,7 +38,7 @@ const Status = ({ text }: { text: string }) => (
   </span>
 );
 
-const Handle = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
+const Handle = ({ user }: { user: Doc<"users"> }) => {
   const rename = useMutation(api.users.rename);
   const [handle, setHandle] = useState(user.handle);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +74,7 @@ const Handle = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
           <div
             className={`${field} flex h-11 min-w-0 flex-1 items-center font-mono`}
           >
-            <span className="text-muted">{domain(origin)}/</span>
+            <span className="text-muted">{domain(origin("ram"))}/</span>
             <input
               aria-label="Your handle"
               className="min-w-0 flex-1 bg-transparent outline-none"
@@ -100,7 +101,7 @@ const Handle = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
   );
 };
 
-const You = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
+const You = ({ user }: { user: Doc<"users"> }) => {
   const save = useMutation(api.users.save);
 
   const [you, setYou, status] = useAutosave(
@@ -118,7 +119,7 @@ const You = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
         <h2 className="title">You</h2>
         <Status text={status} />
       </div>
-      <Handle origin={origin} user={user} />
+      <Handle user={user} />
       <Line label="Name">
         <input
           className={`${field} h-11 font-mono`}
@@ -296,15 +297,9 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
   );
 };
 
-export const Profile = ({
-  origin,
-  user,
-}: {
-  origin: string;
-  user: Doc<"users">;
-}) => (
+export const Profile = ({ user }: { user: Doc<"users"> }) => (
   <section className="grid grid-cols-1 gap-12 border-t-2 border-ink px-6 py-12 md:grid-cols-2 md:gap-16 md:px-16">
-    <You origin={origin} user={user} />
+    <You user={user} />
     <RigEditor user={user} />
   </section>
 );

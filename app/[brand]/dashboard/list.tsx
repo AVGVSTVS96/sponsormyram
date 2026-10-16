@@ -3,12 +3,12 @@
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
+import { Chips, number, solid } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { title } from "@/lib/kinds";
 import type { Ask, Kind } from "@/lib/kinds";
 
-import { Chips, number, solid } from "../ui/parts";
 import { field, fresh, Picker } from "./picker";
 import { attempt } from "./say";
 

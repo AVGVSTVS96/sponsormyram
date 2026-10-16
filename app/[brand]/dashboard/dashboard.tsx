@@ -4,30 +4,29 @@ import { useQuery } from "convex/react";
 import Link from "next/link";
 import { startTransition, useState } from "react";
 
+import { outline, lead, postList, solid } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { domain } from "@/lib/brand";
+import { origin } from "@/lib/origin";
 
-import { intent, outline, solid } from "../ui/parts";
 import { Claim } from "./claim";
 import { List } from "./list";
 import { Profile } from "./profile";
 
-const Band = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
+const Band = ({ user }: { user: Doc<"users"> }) => {
   const [copied, setCopied] = useState(false);
-  const url = `${origin}/${user.handle}`;
+  const brand = lead("ram", useQuery(api.items.mine) ?? []);
+  const url = `${origin(brand)}/${user.handle}`;
 
   return (
     <section className="flex flex-col gap-6 border-b-2 border-ink px-6 py-10 md:flex-row md:items-end md:justify-between md:px-16">
       <div className="flex min-w-0 flex-col gap-2">
         <span className="label text-muted">Your page</span>
-        <Link
-          className="truncate title hover:underline"
-          href={`/${user.handle}`}
-        >
-          <span className="text-muted">{domain(origin)}/</span>
+        <a className="truncate title hover:underline" href={url}>
+          <span className="text-muted">{domain(origin(brand))}/</span>
           {user.handle}
-        </Link>
+        </a>
       </div>
       <div className="flex flex-wrap gap-2">
         <button
@@ -45,10 +44,7 @@ const Band = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
         >
           {copied ? "Copied ✓" : "Copy link"}
         </button>
-        <a
-          className={solid}
-          href={intent("Sponsor my RAM. Here's what my rig is short on:", url)}
-        >
+        <a className={solid} href={postList(brand, user.handle)}>
           Post your list on X
         </a>
       </div>
@@ -56,7 +52,7 @@ const Band = ({ origin, user }: { origin: string; user: Doc<"users"> }) => {
   );
 };
 
-export const Dashboard = ({ origin }: { origin: string }) => {
+export const Dashboard = () => {
   const me = useQuery(api.users.me);
 
   if (me === undefined) {
@@ -75,14 +71,14 @@ export const Dashboard = ({ origin }: { origin: string }) => {
   }
 
   if (me.user === null) {
-    return <Claim origin={origin} suggestion={me.suggestion} />;
+    return <Claim suggestion={me.suggestion} />;
   }
 
   return (
     <>
-      <Band origin={origin} user={me.user} />
+      <Band user={me.user} />
       <List />
-      <Profile origin={origin} user={me.user} />
+      <Profile user={me.user} />
     </>
   );
 };

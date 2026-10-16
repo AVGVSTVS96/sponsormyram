@@ -1,10 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { outline, solid } from "../ui/parts";
-import { continueWith, sendCode, verifyCode } from "./actions";
+import { outline, solid } from "@/app/ui/parts";
+
+import { continueWith, sendCode, verifyCode } from "./session";
 
 const field =
   "h-11 w-full rounded-chip border-2 border-ink bg-paper px-3 font-mono text-base outline-none placeholder:text-muted focus:border-pcb";
@@ -24,16 +25,24 @@ const Google = () => (
 const github = continueWith.bind(null, "github");
 const google = continueWith.bind(null, "google");
 
-const Form = ({ failed }: { failed: boolean }) => {
+const Form = () => {
+  const params = useSearchParams();
+  const claim = params.get("claim");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
 
   const [error, setError] = useState(
-    failed ? "Sign-in didn't finish. Try again." : null
+    params.has("failed") ? "Sign-in didn't finish. Try again." : null
   );
 
   const [pending, start] = useTransition();
+
+  useEffect(() => {
+    if (claim !== null) {
+      localStorage.setItem("claim", claim);
+    }
+  }, [claim]);
 
   const send = () => {
     start(async () => {
@@ -171,34 +180,22 @@ const Card = ({
   </div>
 );
 
-export const Sheet = ({
-  failed = false,
-  modal = false,
-}: {
-  failed?: boolean;
-  modal?: boolean;
-}) => {
+export const Sheet = ({ onClose }: { onClose?: () => void }) => {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
 
-  const close = () => {
-    if (modal) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  };
-
   useEffect(() => {
-    if (modal) {
-      dialog.current?.showModal();
-    }
-  }, [modal]);
+    dialog.current?.showModal();
+  }, []);
 
-  if (!modal) {
+  if (onClose === undefined) {
     return (
-      <Card onClose={close}>
-        <Form failed={failed} />
+      <Card
+        onClose={() => {
+          router.push("/");
+        }}
+      >
+        <Form />
       </Card>
     );
   }
@@ -208,20 +205,20 @@ export const Sheet = ({
       className="m-0 size-full max-h-none max-w-none place-items-center bg-transparent p-6 backdrop:bg-coal/45 open:grid"
       onCancel={(event) => {
         event.preventDefault();
-        close();
+        onClose();
       }}
       ref={dialog}
     >
       <button
         aria-label="Close"
         className="fixed inset-0 cursor-default"
-        onClick={close}
+        onClick={onClose}
         tabIndex={-1}
         type="button"
       />
       <div className="relative w-full max-w-[440px]">
-        <Card onClose={close}>
-          <Form failed={failed} />
+        <Card onClose={onClose}>
+          <Form />
         </Card>
       </div>
     </dialog>

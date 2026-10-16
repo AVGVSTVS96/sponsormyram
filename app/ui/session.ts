@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 
 import { clientId, finish, requestOrigin, workos } from "@/lib/auth";
 
+import { signedIn } from "./hint";
+
 const providers = new Map([
   ["github", "GitHubOAuth"],
   ["google", "GoogleOAuth"],
@@ -74,5 +76,8 @@ export const verifyCode = async (email: string, code: string) => {
 };
 
 export const leave = async () => {
+  const jar = await cookies();
+
+  jar.delete(signedIn.name);
   await signOut({ returnTo: await requestOrigin() });
 };
