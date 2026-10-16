@@ -52,8 +52,16 @@ export const Footer = ({ here }: { here: Brand }) => (
       ))}
     </div>
     <span>Half joke, half not · nothing is sold here</span>
-    <a className="hover:text-ink" href={repo}>
-      Open source → GitHub
-    </a>
+    <div className="flex flex-wrap gap-4">
+      <Link className="hover:text-ink" href="/terms">
+        Terms
+      </Link>
+      <Link className="hover:text-ink" href="/privacy">
+        Privacy
+      </Link>
+      <a className="hover:text-ink" href={repo}>
+        Open source → GitHub
+      </a>
+    </div>
   </footer>
 );
