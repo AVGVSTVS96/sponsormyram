@@ -1,10 +1,28 @@
-import { board, installedGB } from "@/lib/rig";
-import { card } from "./card";
+import { fetchQuery } from "convex/nextjs";
 
-export { size } from "./card";
+import { api } from "@/convex/_generated/api";
+import { brands, domain } from "@/lib/brand";
+import { size as gb } from "@/lib/kinds";
+
+import { card } from "./ui/card";
+import { here } from "./ui/here";
+
+export { size } from "./ui/card";
+
 export const contentType = "image/png";
-export const alt = "Sponsor my RAM";
+export const alt = "Sponsor my RAM, SSD or HDD";
 
-export default function Image() {
-  return card(`${board.maxGB - installedGB}GB short`, "Sponsor my RAM.");
-}
+const Image = async () => {
+  const site = await here();
+  const board = await fetchQuery(api.items.board, { kind: site.brand });
+
+  return await card({
+    brand: site.brand,
+    corner: `${board.slots.length} asks`,
+    domain: domain(site.origin(site.brand)),
+    footer: `Collectively short ${gb(board.short)}`,
+    title: `Sponsor my ${brands[site.brand].word}.`,
+  });
+};
+
+export default Image;
