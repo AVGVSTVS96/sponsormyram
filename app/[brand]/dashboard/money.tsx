@@ -5,17 +5,12 @@ import { useState } from "react";
 
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { methods, problemOf, ways } from "@/lib/pay";
+import { methods, problemOf, tidy, ways } from "@/lib/pay";
 import type { Method, PayTo, Way } from "@/lib/pay";
 
 import { useAutosave } from "./autosave";
 import { field } from "./picker";
 import { Status } from "./profile";
-
-const cleaned = ({ method, to }: PayTo) => ({
-  method,
-  to: ways[method].clean(to),
-});
 
 const ready = (pay: PayTo) => pay.to !== "" && problemOf(pay) === null;
 
@@ -112,7 +107,7 @@ const Row = ({
             ×
           </button>
         </div>
-        <Note pay={cleaned(pay)} />
+        <Note pay={tidy(pay)} />
       </div>
     </div>
   );
@@ -123,7 +118,7 @@ export const Money = ({ user }: { user: Doc<"users"> }) => {
   const [focus, setFocus] = useState<Method | null>(null);
 
   const [pay, setPay, status] = useAutosave(user.pay ?? [], async (value) => {
-    await save({ pay: value.map(cleaned).filter(ready) });
+    await save({ pay: value.map(tidy).filter(ready) });
 
     return null;
   });
@@ -145,9 +140,7 @@ export const Money = ({ user }: { user: Doc<"users"> }) => {
             Optional · shows under your list
           </span>
         ) : (
-          <Status
-            text={pay.map(cleaned).some(stuck) ? "Not saved yet" : status}
-          />
+          <Status text={pay.map(tidy).some(stuck) ? "Not saved yet" : status} />
         )}
       </div>
       <p className="max-w-[600px] text-muted">

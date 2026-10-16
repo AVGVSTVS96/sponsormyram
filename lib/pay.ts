@@ -160,13 +160,15 @@ export const problemOf = ({ method, to }: PayTo) => {
   return way.pattern.test(to) ? null : way.problem;
 };
 
+export const tidy = ({ method, to }: PayTo): PayTo => ({
+  method,
+  to: ways[method].clean(to),
+});
+
 export const settle = (pay: PayTo[]) => {
-  const cleaned = pay.map(({ method, to }) => ({
-    method,
-    to: ways[method].clean(to),
-  }));
+  const tidied = pay.map(tidy);
 
   return methods.flatMap(
-    (method) => cleaned.find((each) => each.method === method) ?? []
+    (method) => tidied.find((each) => each.method === method) ?? []
   );
 };
