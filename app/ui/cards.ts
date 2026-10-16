@@ -8,7 +8,7 @@ import { origin } from "@/lib/origin";
 
 import type { Card } from "./card";
 import { askOf, boardOf, listOf } from "./data";
-import { lead, number, plural, shortOf } from "./parts";
+import { lead, number, plural, shortOf, who } from "./parts";
 
 export const coldLists = 10;
 
@@ -55,7 +55,7 @@ const list = async (here: Brand, handle: string): Promise<Card | null> => {
 
   const brand = lead(here, page.items);
 
-  return { brand, ...standing(brand, page), top: `@${page.user.handle}` };
+  return { brand, ...standing(brand, page), top: who(page.user) };
 };
 
 const ask = async (handle: string, slug: string): Promise<Card | null> => {
@@ -68,7 +68,7 @@ const ask = async (handle: string, slug: string): Promise<Card | null> => {
   const { user } = loaded;
   const { index, item } = loaded.found;
   const brand = brandOf(item.kind);
-  const owner = `@${user.x === "" ? user.handle : user.x}`;
+  const owner = who(user);
 
   return {
     brand,
@@ -81,17 +81,33 @@ const ask = async (handle: string, slug: string): Promise<Card | null> => {
     stamp:
       item.sponsor === undefined
         ? undefined
-        : `By @${item.sponsor.by} · ${stamp(item.sponsor.at)}`,
+        : `${item.sponsor.by === null ? "Filled" : `By ${who(item.sponsor.by)}`} · ${stamp(item.sponsor.at)}`,
     title: title(item),
     top: domain(origin(brand)),
   };
 };
 
+const split = (at: string[]) => {
+  const width = at[0] === "gh" || at[0] === "x" ? 2 : 1;
+
+  return {
+    handle: at.length < width ? undefined : at.slice(0, width).join("/"),
+    more: at.slice(width),
+  };
+};
+
 export const cardFor = async (brand: Brand, at: string[]) => {
-  const [handle, slug, ...rest] = at;
+  const {
+    handle,
+    more: [slug, ...rest],
+  } = split(at);
+
+  if (at.length === 0) {
+    return await landing(brand);
+  }
 
   if (handle === undefined) {
-    return await landing(brand);
+    return null;
   }
 
   if (slug === undefined) {

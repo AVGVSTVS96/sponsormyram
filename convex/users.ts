@@ -1,16 +1,13 @@
+import { APIError } from "better-auth/api";
 import { ConvexError, v } from "convex/values";
 
-import {
-  cleanHandle,
-  cleanX,
-  handleProblem,
-  suggestHandle,
-  xProblem,
-} from "../lib/handle";
+import { cleanHandle } from "../lib/handle";
 import { payTo, problemOf, settle } from "../lib/pay";
 import { mutation, query } from "./_generated/server";
-import { change, revalidate } from "./counters";
-import { byHandle, listOf, owner, pastHandle, viewer } from "./model";
+import { authComponent, createAuth } from "./auth";
+import { change } from "./counters";
+import { byHandle, listOf, owner, viewer } from "./model";
+import { shown } from "./people";
 import { rig } from "./schema";
 
 export const me = query({
@@ -18,148 +15,14 @@ export const me = query({
   handler: async (ctx) => {
     const found = await viewer(ctx);
 
-    if (found === null) {
-      return null;
-    }
-
-    return {
-      suggestion: suggestHandle(found.identity.email),
-      user: found.user,
-    };
-  },
-});
-
-export const available = query({
-  args: { handle: v.string() },
-  handler: async (ctx, args) => {
-    const handle = cleanHandle(args.handle);
-    const problem = handleProblem(handle);
-
-    if (problem !== null) {
-      return problem;
-    }
-
-    const holder = await byHandle(ctx, handle);
-
-    if (holder === null) {
-      return null;
-    }
-
-    const found = await viewer(ctx);
-
-    return holder._id === found?.user?._id ? null : "Taken";
-  },
-});
-
-export const link = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const found = await viewer(ctx);
-    const email = found?.identity.email?.toLowerCase();
-
-    if (found === null || found.user !== null || email === undefined) {
-      return;
-    }
-
-    const claim = await ctx.db
-      .query("claims")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
-    const seeded =
-      claim === null ? null : await ctx.db.get("users", claim.userId);
-
-    if (seeded === null || seeded.tokenIdentifier !== undefined) {
-      return;
-    }
-
-    await ctx.db.patch("users", seeded._id, {
-      tokenIdentifier: found.identity.tokenIdentifier,
-    });
-  },
-});
-
-export const claim = mutation({
-  args: { handle: v.string(), x: v.string() },
-  handler: async (ctx, args) => {
-    const found = await viewer(ctx);
-
-    if (found === null) {
-      throw new ConvexError("Sign in first.");
-    }
-
-    if (found.user !== null) {
-      return found.user._id;
-    }
-
-    const handle = cleanHandle(args.handle);
-    const x = cleanX(args.x);
-    const problem = handleProblem(handle) ?? xProblem(x);
-
-    if (problem !== null) {
-      throw new ConvexError(problem);
-    }
-
-    if ((await byHandle(ctx, handle)) !== null) {
-      throw new ConvexError("Taken");
-    }
-
-    await revalidate(ctx, [`handle:${handle}`]);
-
-    return await ctx.db.insert("users", {
-      handle,
-      name: found.identity.name ?? "",
-      note: "",
-      tokenIdentifier: found.identity.tokenIdentifier,
-      x,
-    });
-  },
-});
-
-export const rename = mutation({
-  args: { handle: v.string() },
-  handler: async (ctx, args) => {
-    const user = await owner(ctx);
-    const handle = cleanHandle(args.handle);
-    const problem = handleProblem(handle);
-
-    if (problem !== null) {
-      throw new ConvexError(problem);
-    }
-
-    if (handle === user.handle) {
-      return;
-    }
-
-    const holder = await byHandle(ctx, handle);
-
-    if (holder !== null && holder._id !== user._id) {
-      throw new ConvexError("Taken");
-    }
-
-    await change(ctx, user._id, async () => {
-      const reclaimed = await pastHandle(ctx, handle);
-
-      if (reclaimed !== null) {
-        await ctx.db.delete("handles", reclaimed._id);
-      }
-
-      await ctx.db.insert("handles", { handle: user.handle, userId: user._id });
-      await ctx.db.patch("users", user._id, { handle });
-    });
+    return found === null ? null : { user: found.user };
   },
 });
 
 export const save = mutation({
-  args: { name: v.string(), note: v.string(), x: v.string() },
+  args: { name: v.string(), note: v.string() },
   handler: async (ctx, args) => {
     const user = await owner(ctx);
-    const x = cleanX(args.x);
-    const problem = xProblem(x);
-
-    if (problem !== null) {
-      throw new ConvexError(problem);
-    }
 
     if (args.note.length > 400 || args.name.length > 60) {
       throw new ConvexError(
@@ -171,7 +34,6 @@ export const save = mutation({
       await ctx.db.patch("users", user._id, {
         name: args.name.trim(),
         note: args.note.trim(),
-        x,
       });
     });
   },
@@ -219,6 +81,25 @@ export const savePay = mutation({
   },
 });
 
+export const leave = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await owner(ctx);
+
+    const { auth, headers } = await authComponent.getAuth(createAuth, ctx);
+
+    try {
+      await auth.api.deleteUser({ body: {}, headers });
+    } catch (error) {
+      throw new ConvexError(
+        error instanceof APIError && error.body?.code === "SESSION_EXPIRED"
+          ? "For safety, deleting needs a sign-in from the last day. Sign out, sign back in, then delete."
+          : "Couldn't delete it. Try again."
+      );
+    }
+  },
+});
+
 export const page = query({
   args: { handle: v.string() },
   handler: async (ctx, args) => {
@@ -229,9 +110,10 @@ export const page = query({
     }
 
     return {
-      items: await listOf(ctx, user._id),
+      items: await shown(ctx, await listOf(ctx, user._id)),
       user: {
         _id: user._id,
+        gh: user.gh,
         handle: user.handle,
         hidden: user.hidden === true,
         name: user.name,

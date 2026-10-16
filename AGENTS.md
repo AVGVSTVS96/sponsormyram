@@ -16,7 +16,8 @@ One app behind three brands: sponsormyram, sponsormyssd and sponsormyhdd. The ho
 
 ## Architecture
 
-- Convex owns all data. WorkOS AuthKit signs people in; `convex/model.ts` turns the token into a user, and every mutation goes through it.
+- Convex owns all data. Better Auth runs inside Convex (`convex/auth.ts`) with X and GitHub as the only sign-ins, so a handle is proven, never typed. `convex/people.ts` keeps each person's page in step with their accounts; `convex/model.ts` turns the session into a user, and every mutation goes through it.
+- A page's `handle` is its path: `/<x handle>`, `/gh/<github login>`, or `/x/<handle>` when an X handle collides with a route. Old paths live in `handles` and redirect.
 - Sign-in and the dashboard live on the sponsormyram host only, since session cookies are per host. Public pages render on all three.
 - Item kinds, their specs and titles come from one registry, `lib/kinds.ts`. Add a kind there and the picker, titles, stats and cards follow.
 

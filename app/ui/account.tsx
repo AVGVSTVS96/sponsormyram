@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useState, useSyncExternalStore } from "react";
 
 import type { Brand } from "@/lib/brand";
 import { origin } from "@/lib/origin";
 
 import { signedIn } from "./hint";
 import { solid } from "./parts";
-import { Sheet } from "./sheet";
+
+const Sheet = lazy(async () => await import("./sheet"));
 
 const listen = (change: () => void) => {
   window.addEventListener("focus", change);
@@ -18,12 +19,16 @@ const listen = (change: () => void) => {
   };
 };
 
-const useSignedIn = () =>
+export const useSignedIn = () =>
   useSyncExternalStore(
     listen,
     () => document.cookie.includes(`${signedIn.name}=${signedIn.value}`),
     () => false
   );
+
+export const forgetSignIn = async () => {
+  await cookieStore.delete({ name: signedIn.name, path: signedIn.path });
+};
 
 export const AuthLink = ({
   brand,
@@ -66,11 +71,13 @@ export const AuthLink = ({
         {children}
       </Link>
       {open && (
-        <Sheet
-          onClose={() => {
-            setOpen(false);
-          }}
-        />
+        <Suspense>
+          <Sheet
+            onClose={() => {
+              setOpen(false);
+            }}
+          />
+        </Suspense>
       )}
     </>
   );

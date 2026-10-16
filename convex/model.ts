@@ -4,6 +4,12 @@ import { maxAsks } from "../lib/kinds";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 
+export const pageOf = async (ctx: QueryCtx, authId: string) =>
+  await ctx.db
+    .query("users")
+    .withIndex("by_authId", (q) => q.eq("authId", authId))
+    .unique();
+
 export const viewer = async (ctx: QueryCtx) => {
   const identity = await ctx.auth.getUserIdentity();
 
@@ -11,17 +17,13 @@ export const viewer = async (ctx: QueryCtx) => {
     return null;
   }
 
-  const user = await ctx.db
-    .query("users")
-    .withIndex("by_tokenIdentifier", (q) =>
-      q.eq("tokenIdentifier", identity.tokenIdentifier)
-    )
-    .unique();
-
-  return { identity, user };
+  return {
+    authId: identity.subject,
+    user: await pageOf(ctx, identity.subject),
+  };
 };
 
-export const owner = async (ctx: MutationCtx) => {
+export const owner = async (ctx: QueryCtx) => {
   const found = await viewer(ctx);
 
   if (found === null) {
@@ -29,7 +31,7 @@ export const owner = async (ctx: MutationCtx) => {
   }
 
   if (found.user === null) {
-    throw new ConvexError("Claim your page first.");
+    throw new ConvexError("Your page isn't set up yet. Sign in again.");
   }
 
   return found.user;
@@ -52,23 +54,26 @@ export const listOf = async (ctx: QueryCtx, userId: Id<"users">) =>
     .withIndex("by_userId_and_rank", (q) => q.eq("userId", userId))
     .take(maxAsks);
 
-export const pastHandle = async (ctx: QueryCtx, handle: string) =>
+export const holderOf = async (ctx: QueryCtx, handle: string) =>
   await ctx.db
-    .query("handles")
-    .withIndex("by_handle", (q) => q.eq("handle", handle))
-    .unique();
-
-export const byHandle = async (ctx: QueryCtx, handle: string) => {
-  const current = await ctx.db
     .query("users")
     .withIndex("by_handle", (q) => q.eq("handle", handle))
     .unique();
+
+export const pastHandles = async (ctx: QueryCtx, handle: string) =>
+  await ctx.db
+    .query("handles")
+    .withIndex("by_handle", (q) => q.eq("handle", handle))
+    .take(8);
+
+export const byHandle = async (ctx: QueryCtx, handle: string) => {
+  const current = await holderOf(ctx, handle);
 
   if (current !== null) {
     return current;
   }
 
-  const past = await pastHandle(ctx, handle);
+  const [past] = await pastHandles(ctx, handle);
 
-  return past === null ? null : await ctx.db.get("users", past.userId);
+  return past === undefined ? null : await ctx.db.get("users", past.userId);
 };

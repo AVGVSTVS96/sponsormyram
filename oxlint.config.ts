@@ -20,7 +20,7 @@ export default defineConfig({
   overrides: [
     // WORKAROUND: Convex's ConvexProviderWithAuth takes the auth hook as a prop: https://docs.convex.dev/auth/advanced/custom-auth
     {
-      files: ["app/*/dashboard/providers.tsx"],
+      files: ["app/ui/providers.tsx"],
       rules: { "react/hooks": "off" },
     },
     {

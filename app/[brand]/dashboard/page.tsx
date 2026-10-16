@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Footer } from "@/app/ui/frame";
-import { leave } from "@/app/ui/session";
+import { Providers } from "@/app/ui/providers";
 
 import { Dashboard } from "./dashboard";
-import { Providers } from "./providers";
+import { SignOut } from "./out";
 
 export const metadata: Metadata = {
   robots: { index: false },
@@ -22,17 +23,12 @@ const DashboardPage = () => (
           </Link>
           <span className="hidden label text-muted md:block">Dashboard</span>
         </div>
-        <form action={leave}>
-          <button
-            className="h-11 label text-muted hover:text-ink"
-            type="submit"
-          >
-            Sign out
-          </button>
-        </form>
+        <SignOut />
       </header>
       <main className="flex-1">
-        <Dashboard />
+        <Suspense>
+          <Dashboard />
+        </Suspense>
       </main>
       <Footer here="ram" />
     </div>

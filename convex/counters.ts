@@ -87,9 +87,11 @@ const shift = async (ctx: MutationCtx, kind: Brand, by: Totals) => {
 };
 
 export const revalidate = async (ctx: MutationCtx, tags: Iterable<string>) => {
-  await ctx.scheduler.runAfter(0, internal.revalidate.tags, {
-    tags: [...new Set(tags)],
-  });
+  const unique = [...new Set(tags)];
+
+  if (unique.length > 0) {
+    await ctx.scheduler.runAfter(0, internal.revalidate.tags, { tags: unique });
+  }
 };
 
 export const change = async <T>(

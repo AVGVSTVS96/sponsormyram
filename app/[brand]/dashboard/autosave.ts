@@ -2,7 +2,7 @@
 
 import { startTransition, useRef, useState } from "react";
 
-import { attempt } from "./say";
+import { attempt } from "@/app/ui/say";
 
 export const useAutosave = <T>(
   initial: T,

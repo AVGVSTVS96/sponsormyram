@@ -79,9 +79,21 @@ export const conditions = {
 } satisfies Record<Condition, { chip: string; picker: string; spec: string }>;
 
 export const ramForms = {
-  desktop: { label: "Desktop", spec: "desktop UDIMM, non-ECC", suffix: "" },
-  laptop: { label: "Laptop", spec: "laptop SODIMM", suffix: " SODIMM" },
-  server: { label: "Server", spec: "server RDIMM, ECC", suffix: " RDIMM" },
+  desktop: {
+    label: "Desktop",
+    spec: "desktop UDIMM, non-ECC",
+    suffix: "",
+  },
+  laptop: {
+    label: "Laptop",
+    spec: "laptop SODIMM",
+    suffix: " SODIMM",
+  },
+  server: {
+    label: "Server",
+    spec: "server RDIMM, ECC",
+    suffix: " RDIMM",
+  },
 } satisfies Record<
   RamAsk["form"],
   { label: string; spec: string; suffix: string }
@@ -94,9 +106,21 @@ export const ramSpeeds = {
 } satisfies Record<RamAsk["gen"], number[]>;
 
 export const ssdForms = {
-  nvme: { label: "NVMe M.2", spec: "NVMe M.2 2280", title: "NVMe M.2" },
-  sata: { label: "2.5″ SATA", spec: "2.5″ SATA", title: "2.5″ SATA SSD" },
-  u2: { label: "U.2", spec: "U.2 enterprise", title: "U.2 SSD" },
+  nvme: {
+    label: "NVMe M.2",
+    spec: "NVMe M.2 2280",
+    title: "NVMe M.2",
+  },
+  sata: {
+    label: "2.5″ SATA",
+    spec: "2.5″ SATA",
+    title: "2.5″ SATA SSD",
+  },
+  u2: {
+    label: "U.2",
+    spec: "U.2 enterprise",
+    title: "U.2 SSD",
+  },
 } satisfies Record<
   SsdAsk["form"],
   { label: string; spec: string; title: string }

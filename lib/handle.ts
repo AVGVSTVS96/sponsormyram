@@ -1,117 +1,48 @@
-const reserved = new Set([
-  "about",
-  "abuse",
-  "account",
-  "admin",
+export type Platform = "gh" | "x";
+
+const routes = new Set([
   "api",
-  "apple",
-  "auth",
-  "billing",
-  "blog",
-  "buy",
-  "callback",
   "card",
-  "claim",
-  "contact",
   "dashboard",
-  "docs",
-  "explore",
-  "favicon",
-  "feed",
-  "free",
-  "github",
-  "google",
-  "hdd",
-  "help",
-  "home",
-  "i",
-  "icon",
-  "item",
-  "items",
-  "legal",
-  "list",
-  "lists",
-  "login",
-  "logout",
-  "manifest",
-  "me",
-  "new",
-  "null",
-  "oauth",
-  "official",
-  "pricing",
+  "gh",
+  "mark",
   "privacy",
-  "ram",
-  "register",
-  "robots",
-  "root",
-  "search",
-  "security",
-  "settings",
-  "shop",
-  "signin",
-  "signout",
-  "signup",
-  "sitemap",
-  "sponsor",
-  "sponsormyhdd",
-  "sponsormyram",
-  "sponsormyssd",
-  "ssd",
-  "staff",
-  "static",
-  "status",
-  "support",
-  "system",
-  "team",
   "terms",
-  "twitter",
-  "undefined",
-  "verify",
-  "workos",
-  "www",
   "x",
 ]);
 
-export const handleRule = "a-z, 0-9, _";
-
-export const handleProblem = (handle: string) => {
-  if (handle.length < 2) {
-    return "At least 2 characters";
-  }
-
-  if (handle.length > 24) {
-    return "24 characters at most";
-  }
-
-  if (!/^[a-z0-9_]+$/u.test(handle)) {
-    return `Only ${handleRule}`;
-  }
-
-  if (reserved.has(handle)) {
-    return "That one's taken by the site";
-  }
-
-  return null;
-};
+const allowed = {
+  gh: /^[a-z0-9-]{1,39}$/u,
+  x: /^[a-z0-9_]{1,15}$/u,
+} satisfies Record<Platform, RegExp>;
 
 export const cleanHandle = (text: string) =>
   text.trim().toLowerCase().replace(/^@/u, "");
 
-export const cleanX = (text: string) =>
-  text
-    .trim()
-    .replace(/^@/u, "")
-    .replace(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\//u, "");
+export const pathFor = (platform: Platform, handle: string) => {
+  const name = handle.toLowerCase();
 
-export const xProblem = (x: string) =>
-  x === "" || /^\w{1,15}$/u.test(x)
-    ? null
-    : "X handles are up to 15 letters, numbers or _";
+  if (platform === "gh") {
+    return `gh/${name}`;
+  }
 
-export const suggestHandle = (email: string | undefined) =>
-  (email ?? "")
-    .split("@")[0]
-    ?.toLowerCase()
-    .replaceAll(/[^a-z0-9_]/gu, "")
-    .slice(0, 24) ?? "";
+  return routes.has(name) ? `x/${name}` : name;
+};
+
+export const parsePath = (path: string) => {
+  const [first = "", second] = cleanHandle(path).split("/");
+  const platform: Platform = first === "gh" ? "gh" : "x";
+  const name = second ?? first;
+  const prefixed = second !== undefined;
+
+  if (
+    (prefixed && first !== "gh" && first !== "x") ||
+    !allowed[platform].test(name)
+  ) {
+    return null;
+  }
+
+  return pathFor(platform, name) === cleanHandle(path)
+    ? { name, path: pathFor(platform, name), platform }
+    : null;
+};

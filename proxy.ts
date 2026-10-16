@@ -1,8 +1,4 @@
-import {
-  applyResponseHeaders,
-  authkit,
-  partitionAuthkitHeaders,
-} from "@workos-inc/authkit-nextjs";
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -10,7 +6,7 @@ import { signedIn } from "@/app/ui/hint";
 import { brandFrom } from "@/lib/brand";
 import { origin } from "@/lib/origin";
 
-const ramOnly = /^\/(?:dashboard|sign-in|callback)(?:\/|$)/u;
+const ramOnly = /^\/(?:dashboard|sign-in|api\/auth)(?:\/|$)/u;
 
 const gate = (pathname: string, user: boolean) => {
   if (pathname.startsWith("/dashboard") && !user) {
@@ -20,7 +16,7 @@ const gate = (pathname: string, user: boolean) => {
   return pathname.startsWith("/sign-in") && user ? "/dashboard" : null;
 };
 
-export const proxy = async (request: NextRequest) => {
+export const proxy = (request: NextRequest) => {
   const brand = brandFrom(request.headers.get("host") ?? "");
   const { pathname, search } = request.nextUrl;
   const target = request.nextUrl.clone();
@@ -35,21 +31,16 @@ export const proxy = async (request: NextRequest) => {
     return NextResponse.redirect(`${origin("ram")}${pathname}${search}`);
   }
 
-  const { headers, session } = await authkit(request, {
-    redirectUri: `${request.nextUrl.origin}/callback`,
-  });
+  if (pathname.startsWith("/api/auth")) {
+    return NextResponse.rewrite(target);
+  }
 
-  const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(
-    request,
-    headers
-  );
-
-  const user = session.user !== null;
+  const user = getSessionCookie(request) !== null;
   const to = gate(pathname, user);
 
   const response =
     to === null
-      ? NextResponse.rewrite(target, { request: { headers: requestHeaders } })
+      ? NextResponse.rewrite(target)
       : NextResponse.redirect(new URL(`${to}${search}`, request.url));
 
   if (user) {
@@ -58,7 +49,7 @@ export const proxy = async (request: NextRequest) => {
     response.cookies.delete(signedIn.name);
   }
 
-  return applyResponseHeaders(response, responseHeaders);
+  return response;
 };
 
 export const config = {

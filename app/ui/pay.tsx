@@ -49,7 +49,7 @@ const Sheet = ({
     <div className="flex flex-col gap-5">
       <div className="flex justify-between gap-4 label">
         <span>
-          {label} · @{owner}
+          {label} · {owner}
         </span>
         <button
           className="text-muted hover:text-ink"
@@ -120,7 +120,7 @@ export const ChipIn = ({ owner, pay }: { owner: string; pay: PayTo[] }) =>
       <div className="flex flex-col gap-1 pb-6 md:flex-row md:items-baseline md:justify-between">
         <h2 className="title">Or chip in</h2>
         <span className="label text-muted">
-          Straight to @{owner} · nothing goes through this site
+          Straight to {owner} · nothing goes through this site
         </span>
       </div>
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">

@@ -9,9 +9,13 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as auth from "../auth.js";
 import type * as counters from "../counters.js";
+import type * as http from "../http.js";
 import type * as items from "../items.js";
+import type * as migrate from "../migrate.js";
 import type * as model from "../model.js";
+import type * as people from "../people.js";
 import type * as revalidate from "../revalidate.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
@@ -24,9 +28,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  auth: typeof auth;
   counters: typeof counters;
+  http: typeof http;
   items: typeof items;
+  migrate: typeof migrate;
   model: typeof model;
+  people: typeof people;
   revalidate: typeof revalidate;
   seed: typeof seed;
   users: typeof users;
@@ -58,4 +66,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+};

@@ -16,7 +16,6 @@ export const GET = async (
       "Allow: /",
       "Disallow: /dashboard",
       "Disallow: /sign-in",
-      "Disallow: /callback",
       "Disallow: /api/",
       "",
       `Sitemap: ${home}/map.xml`,

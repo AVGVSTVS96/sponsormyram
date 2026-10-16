@@ -3,19 +3,18 @@
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
-import { Chips, number, solid } from "@/app/ui/parts";
+import { Chips, number } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
+import type { Item } from "@/convex/people";
 import { title } from "@/lib/kinds";
 import type { Ask, Kind } from "@/lib/kinds";
 
-import { field, fresh, Picker } from "./picker";
-import { attempt } from "./say";
+import { fresh, Picker } from "./picker";
 
 type Editing =
   | { type: "new"; kind: Kind }
   | { type: "edit"; id: Id<"items"> }
-  | { type: "fill"; id: Id<"items"> }
   | null;
 
 const askOf = ({
@@ -26,10 +25,10 @@ const askOf = ({
   sponsor: _sponsor,
   userId: _userId,
   ...ask
-}: Doc<"items">): Ask => ask;
+}: Item): Ask => ask;
 
 const action =
-  "label inline-flex h-11 min-w-11 items-center justify-center px-2.5 text-muted transition-colors hover:text-ink disabled:opacity-30 md:h-auto md:min-w-0 md:px-0";
+  "label inline-flex h-11 min-w-11 items-center justify-center px-2.5 text-muted transition-colors hover:text-ink disabled:opacity-30 lg:h-auto lg:min-w-0 lg:px-0";
 
 const adds = [
   ["ram", "+ Add RAM"],
@@ -38,59 +37,12 @@ const adds = [
   ["other", "+ Something else"],
 ] as const;
 
-const FillForm = ({
-  id,
-  onCancel,
-  onFilled,
-}: {
-  id: Id<"items">;
-  onCancel: () => void;
-  onFilled: () => void;
-}) => {
-  const fill = useMutation(api.items.fill);
-  const [by, setBy] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  return (
-    <form
-      action={async () => {
-        const problem = await attempt(async () => await fill({ by, id }));
-
-        setError(problem);
-
-        if (problem === null) {
-          onFilled();
-        }
-      }}
-      className="flex flex-wrap items-center gap-2"
-    >
-      <input
-        aria-label="Sponsor's X handle"
-        autoFocus
-        className={`${field} h-11 w-44 font-mono md:h-10`}
-        onChange={(event) => {
-          setBy(event.target.value);
-        }}
-        placeholder="@ who sent it"
-        value={by}
-      />
-      <button className={solid} type="submit">
-        Mark filled
-      </button>
-      <button className={action} onClick={onCancel} type="button">
-        Cancel
-      </button>
-      {error !== null && <span className="w-full label">{error}</span>}
-    </form>
-  );
-};
-
 const Toast = ({
   item,
   onDone,
   onUndo,
 }: {
-  item: Doc<"items">;
+  item: Item;
   onDone: () => void;
   onUndo: () => void;
 }) => {
@@ -125,6 +77,7 @@ export const List = () => {
   const add = useMutation(api.items.add);
   const edit = useMutation(api.items.edit);
   const restore = useMutation(api.items.restore);
+  const fill = useMutation(api.items.fill);
   const unfill = useMutation(api.items.unfill);
 
   const remove = useMutation(api.items.remove).withOptimisticUpdate(
@@ -159,7 +112,7 @@ export const List = () => {
   );
 
   const [editing, setEditing] = useState<Editing>(null);
-  const [removed, setRemoved] = useState<Doc<"items"> | null>(null);
+  const [removed, setRemoved] = useState<Item | null>(null);
   const [landed, setLanded] = useState<Id<"items"> | null>(null);
   const [, start] = useTransition();
 
@@ -209,10 +162,10 @@ export const List = () => {
             </li>
           ) : (
             <li
-              className="flex flex-col gap-3 border-t border-rule py-5 md:flex-row md:items-center md:gap-0"
+              className="flex flex-col gap-3 border-t border-rule py-5 lg:flex-row lg:items-center lg:gap-0"
               key={item._id}
             >
-              <span className="hidden label text-muted md:block md:w-16">
+              <span className="hidden label text-muted lg:block lg:w-16">
                 {number(index)}
               </span>
               <span
@@ -220,82 +173,72 @@ export const List = () => {
               >
                 {title(item)}
               </span>
-              <div className="md:w-72">
+              <div className="lg:w-96">
                 <Chips item={item} lands={item._id === landed} />
               </div>
-              {editing?.type === "fill" && editing.id === item._id ? (
-                <FillForm
-                  id={item._id}
-                  onCancel={() => {
-                    setEditing(null);
+              <div className="-mx-2.5 flex flex-wrap items-center lg:mx-0 lg:w-80 lg:flex-nowrap lg:justify-end lg:gap-5">
+                <button
+                  className={action}
+                  onClick={() => {
+                    setEditing({ id: item._id, type: "edit" });
                   }}
-                  onFilled={() => {
-                    setEditing(null);
-                    setLanded(item._id);
-                  }}
-                />
-              ) : (
-                <div className="-mx-2.5 flex items-center md:mx-0 md:w-64 md:justify-end md:gap-5">
+                  type="button"
+                >
+                  Edit
+                </button>
+                {item.sponsor === undefined ? (
                   <button
                     className={action}
                     onClick={() => {
-                      setEditing({ id: item._id, type: "edit" });
-                    }}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  {item.sponsor === undefined ? (
-                    <button
-                      className={action}
-                      onClick={() => {
-                        setEditing({ id: item._id, type: "fill" });
-                      }}
-                      type="button"
-                    >
-                      Mark filled
-                    </button>
-                  ) : (
-                    <button
-                      className={action}
-                      onClick={() => {
-                        start(async () => {
-                          await unfill({ id: item._id });
-                        });
-                      }}
-                      type="button"
-                    >
-                      Unfill
-                    </button>
-                  )}
-                  <button
-                    aria-label="Move up"
-                    className={action}
-                    disabled={index === 0}
-                    onClick={() => {
+                      setLanded(item._id);
                       start(async () => {
-                        await move({ by: -1, id: item._id });
+                        await fill({ id: item._id });
                       });
                     }}
                     type="button"
                   >
-                    ↑
+                    Mark filled
                   </button>
+                ) : (
                   <button
-                    aria-label="Move down"
                     className={action}
-                    disabled={index === items.length - 1}
                     onClick={() => {
                       start(async () => {
-                        await move({ by: 1, id: item._id });
+                        await unfill({ id: item._id });
                       });
                     }}
                     type="button"
                   >
-                    ↓
+                    Unfill
                   </button>
-                </div>
-              )}
+                )}
+                <button
+                  aria-label="Move up"
+                  className={action}
+                  disabled={index === 0}
+                  onClick={() => {
+                    start(async () => {
+                      await move({ by: -1, id: item._id });
+                    });
+                  }}
+                  type="button"
+                >
+                  ↑
+                </button>
+                <button
+                  aria-label="Move down"
+                  className={action}
+                  disabled={index === items.length - 1}
+                  onClick={() => {
+                    start(async () => {
+                      await move({ by: 1, id: item._id });
+                    });
+                  }}
+                  type="button"
+                >
+                  ↓
+                </button>
+              </div>
             </li>
           )
         )}
@@ -344,7 +287,10 @@ export const List = () => {
                 ask: askOf(removed),
                 rank: removed.rank,
                 slug: removed.slug,
-                sponsor: removed.sponsor,
+                sponsor:
+                  removed.sponsor === undefined
+                    ? undefined
+                    : { at: removed.sponsor.at, by: removed.sponsor.by?._id },
               });
             });
           }}

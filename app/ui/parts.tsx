@@ -1,4 +1,5 @@
 import type { Doc } from "@/convex/_generated/dataModel";
+import type { Item, Person } from "@/convex/people";
 import { brands, brandOf } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
 import { capacity, conditions, kindLabels, title } from "@/lib/kinds";
@@ -16,6 +17,16 @@ export const button = {
 export const solid = `${button.base} ${button.primary}`;
 export const outline = `${button.base} ${button.ghost}`;
 
+type Named = Pick<Person, "gh" | "handle" | "x">;
+
+export const who = ({ gh, handle, x }: Named) => {
+  if (x !== undefined) {
+    return `@${x.handle}`;
+  }
+
+  return gh === undefined ? `@${handle}` : `gh/${gh.handle}`;
+};
+
 const chip =
   "label inline-flex h-6 items-center rounded-chip px-2 whitespace-nowrap";
 
@@ -23,34 +34,48 @@ export const Chips = ({
   item,
   lands = false,
 }: {
-  item: Doc<"items">;
+  item: Item;
   lands?: boolean;
-}) => (
-  <div className="flex flex-wrap gap-2">
-    <span className={`${chip} bg-ink text-paper`}>{kindLabels[item.kind]}</span>
-    {item.sponsor === undefined ? (
+}) => {
+  const state = () => {
+    if (item.sponsor !== undefined) {
+      return (
+        <span
+          className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-stamp" : ""}`}
+        >
+          {item.sponsor.by === null
+            ? "Filled"
+            : `Sponsored by ${who(item.sponsor.by)}`}
+        </span>
+      );
+    }
+
+    return (
       <span className={`${chip} border border-ink`}>
         {conditions[item.condition].chip}
       </span>
-    ) : (
-      <span
-        className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-stamp" : ""}`}
-      >
-        Sponsored by @{item.sponsor.by}
+    );
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <span className={`${chip} bg-ink text-paper`}>
+        {kindLabels[item.kind]}
       </span>
-    )}
-  </div>
-);
+      {state()}
+    </div>
+  );
+};
 
 export const number = (index: number) => String(index + 1).padStart(2, "0");
 
-export const itemUrl = (handle: string, item: Doc<"items">) =>
+export const itemUrl = (handle: string, item: Pick<Item, "kind" | "slug">) =>
   `${origin(brandOf(item.kind))}/${handle}/${item.slug}`;
 
 export const intent = (text: string, url: string) =>
   `https://x.com/intent/post?${new URLSearchParams({ text, url }).toString()}`;
 
-export const postItem = (handle: string, item: Doc<"items">) =>
+export const postItem = (handle: string, item: Item) =>
   intent(
     `Sponsor my ${brands[brandOf(item.kind)].word}: ${title(item)}`,
     itemUrl(handle, item)
@@ -62,7 +87,15 @@ export const postList = (brand: Brand, handle: string) =>
     `${origin(brand)}/${handle}`
   );
 
-export const lead = (here: Brand, items: Doc<"items">[]): Brand => {
+export const sponsorItem = (owner: Named, item: Item) =>
+  owner.x === undefined
+    ? null
+    : intent(
+        `@${owner.x.handle} I can sponsor your ${title(item)}`,
+        itemUrl(owner.handle, item)
+      );
+
+export const lead = (here: Brand, items: Item[]): Brand => {
   const first = items.find((item) => item.sponsor === undefined) ?? items[0];
 
   if (first === undefined || items.some((item) => item.kind === here)) {
@@ -72,22 +105,17 @@ export const lead = (here: Brand, items: Doc<"items">[]): Brand => {
   return brandOf(first.kind);
 };
 
-export const sponsorItem = (handle: string, x: string, item: Doc<"items">) =>
-  x === ""
-    ? null
-    : intent(`@${x} I can sponsor your ${title(item)}`, itemUrl(handle, item));
-
 export const plural = (count: number, word: string) =>
   `${count} ${word}${count === 1 ? "" : "s"}`;
 
-export const openFor = (brand: Brand, items: Doc<"items">[]) =>
+export const openFor = (brand: Brand, items: Item[]) =>
   items.filter(
     (item) => item.sponsor === undefined && brandOf(item.kind) === brand
   );
 
 export const shortOf = (
   brand: Brand,
-  items: Doc<"items">[],
+  items: Item[],
   rig: Doc<"users">["rig"]
 ) => {
   const fromRig =

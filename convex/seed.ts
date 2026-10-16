@@ -1,11 +1,9 @@
-import { v } from "convex/values";
-
 import { internalMutation } from "./_generated/server";
 import { byHandle } from "./model";
 
 export const bassim = internalMutation({
-  args: { emails: v.array(v.string()) },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
     if ((await byHandle(ctx, "avgvstvs96")) !== null) {
       return;
     }
@@ -19,15 +17,7 @@ export const bassim = internalMutation({
         maxGB: 128,
         slots: [0, 8, 16, 8],
       },
-      x: "AVGVSTVS96",
     });
-
-    await Promise.all(
-      args.emails.map(
-        async (email) =>
-          await ctx.db.insert("claims", { email: email.toLowerCase(), userId })
-      )
-    );
 
     await ctx.db.insert("items", {
       condition: "used",

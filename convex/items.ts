@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 
-import { cleanHandle, cleanX, xProblem } from "../lib/handle";
+import { cleanHandle } from "../lib/handle";
 import { ask, maxAsks, slugify, title } from "../lib/kinds";
 import type { Ask } from "../lib/kinds";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -8,6 +8,8 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { change, zero } from "./counters";
 import { byHandle, listOf, owner, ownItem, viewer } from "./model";
+import { person, shown } from "./people";
+import type { Item } from "./people";
 import { shelf } from "./schema";
 
 const check = (item: Ask) => {
@@ -123,7 +125,9 @@ export const restore = mutation({
     ask,
     rank: v.number(),
     slug: v.string(),
-    sponsor: v.optional(v.object({ at: v.number(), by: v.string() })),
+    sponsor: v.optional(
+      v.object({ at: v.number(), by: v.optional(v.id("users")) })
+    ),
   },
   handler: async (ctx, args) => {
     const user = await owner(ctx);
@@ -165,22 +169,16 @@ export const move = mutation({
 });
 
 export const fill = mutation({
-  args: { by: v.string(), id: v.id("items") },
+  args: { id: v.id("items") },
   handler: async (ctx, args) => {
     const { item, user } = await ownItem(ctx, args.id);
-    const by = cleanX(args.by);
 
-    const problem =
-      by === "" ? "Who sent it? Their X handle goes on it." : xProblem(by);
-
-    if (problem !== null) {
-      throw new ConvexError(problem);
+    if (item.sponsor !== undefined) {
+      return;
     }
 
     await change(ctx, user._id, async () => {
-      await ctx.db.patch("items", item._id, {
-        sponsor: { at: Date.now(), by },
-      });
+      await ctx.db.patch("items", item._id, { sponsor: { at: Date.now() } });
     });
   },
 });
@@ -207,14 +205,19 @@ const withOwners = async (ctx: QueryCtx, items: Doc<"items">[]) => {
     users.flatMap((user) =>
       user === null || user.hidden === true
         ? []
-        : [[user._id, { handle: user.handle, x: user.x }] as const]
+        : [[user._id, person(user)] as const]
     )
   );
 
-  return items.flatMap((item) => {
-    const person = owners.get(item.userId);
+  const visible = await shown(
+    ctx,
+    items.filter((item) => owners.has(item.userId))
+  );
 
-    return person === undefined ? [] : [{ item, owner: person }];
+  return visible.flatMap((item) => {
+    const found = owners.get(item.userId);
+
+    return found === undefined ? [] : [{ item, owner: found }];
   });
 };
 
@@ -228,13 +231,13 @@ export const mine = query({
       return [];
     }
 
-    return await listOf(ctx, user._id);
+    return await shown(ctx, await listOf(ctx, user._id));
   },
 });
 
 const recentSlots = 64;
 
-const open = ({ item }: { item: Doc<"items"> }) => item.sponsor === undefined;
+const open = ({ item }: { item: Item }) => item.sponsor === undefined;
 
 export const board = query({
   args: { kind: shelf },
@@ -263,8 +266,8 @@ export const board = query({
 
     return {
       feed: newest.slice(0, 6),
-      first: oldest.find(open)?.owner.handle ?? null,
-      latest: newest.find(open)?.owner.handle ?? null,
+      first: oldest.find(open)?.owner ?? null,
+      latest: newest.find(open)?.owner ?? null,
       slots: newest
         .flatMap(({ item }) =>
           Array.from({ length: item.count }, () => item.sponsor !== undefined)
@@ -292,13 +295,13 @@ export const one = query({
         item.slug === args.slug || item.oldSlugs?.includes(args.slug) === true
     );
 
+    const [item] = index === -1 ? [] : await shown(ctx, [items[index]]);
+
     return {
-      found:
-        index === -1
-          ? null
-          : { index, item: items[index], total: items.length },
+      found: item === undefined ? null : { index, item, total: items.length },
       user: {
         _id: user._id,
+        gh: user.gh,
         handle: user.handle,
         hidden: user.hidden === true,
         name: user.name,

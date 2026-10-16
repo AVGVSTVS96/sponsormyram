@@ -16,6 +16,7 @@ import {
   postItem,
   solid,
   sponsorItem,
+  who,
 } from "@/app/ui/parts";
 import { installed } from "@/app/ui/rig";
 import { Roll } from "@/app/ui/roll";
@@ -51,7 +52,7 @@ const steps = [
   ],
   [
     "Get it filled.",
-    "Someone ships you the part. You mark it sponsored and their handle goes on it in gold, for good.",
+    "Someone ships you the part. You mark it filled and it turns gold, for good.",
   ],
 ];
 
@@ -85,7 +86,7 @@ const Featured = async ({
     <div className="flex w-full shrink-0 flex-col border-2 border-ink md:w-[600px]">
       <div className="flex flex-col gap-5 p-4 pb-6 md:px-6 md:pt-6 md:pb-7">
         <div className="flex justify-between gap-4 label">
-          <span>@{user.handle}</span>
+          <span>{who(user)}</span>
           <span className="text-muted">
             {plural(open.length, "ask")} · {items.length - open.length} filled
           </span>
@@ -118,7 +119,7 @@ const Featured = async ({
       )}
       <ol>
         {asks.slice(0, 3).map((item) => {
-          const sponsor = sponsorItem(user.handle, user.x, item);
+          const sponsor = sponsorItem(user, item);
 
           return (
             <li
@@ -181,7 +182,7 @@ const Landing = async () => {
   const featured = cold ? board.first : null;
 
   const feed = board.feed.filter(
-    ({ owner }) => featured === null || owner.handle !== featured
+    ({ owner }) => featured === null || owner._id !== featured._id
   );
 
   return (
@@ -201,14 +202,16 @@ const Landing = async () => {
                 Make your list →
               </AuthLink>
               {board.latest !== null && (
-                <Link className={outline} href={`/${board.latest}`}>
-                  See one: @{board.latest}
+                <Link className={outline} href={`/${board.latest.handle}`}>
+                  See one: {who(board.latest)}
                 </Link>
               )}
             </div>
           </div>
           {cold ? (
-            featured !== null && <Featured brand={brand} handle={featured} />
+            featured !== null && (
+              <Featured brand={brand} handle={featured.handle} />
+            )
           ) : (
             <div className="flex flex-col gap-2 md:items-end">
               <span className="label text-muted">Collectively short</span>
@@ -251,9 +254,7 @@ const Landing = async () => {
             <ol>
               {feed.map(({ item, owner }, index) => {
                 const sponsor =
-                  item.sponsor === undefined
-                    ? sponsorItem(owner.handle, owner.x, item)
-                    : null;
+                  item.sponsor === undefined ? sponsorItem(owner, item) : null;
 
                 return (
                   <li
@@ -276,7 +277,7 @@ const Landing = async () => {
                             className="text-ink hover:underline"
                             href={`/${owner.handle}`}
                           >
-                            @{owner.handle}
+                            {who(owner)}
                           </Link>{" "}
                           · <Ago time={item._creationTime} />
                         </span>

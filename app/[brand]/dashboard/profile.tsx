@@ -1,21 +1,22 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { forgetSignIn } from "@/app/ui/account";
 import { Ram } from "@/app/ui/glyphs";
-import { solid } from "@/app/ui/parts";
+import { outline, solid } from "@/app/ui/parts";
 import { slotName } from "@/app/ui/rig";
+import { attempt } from "@/app/ui/say";
+import { GitHub, problem, X } from "@/app/ui/sheet";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { domain } from "@/lib/brand";
-import { cleanHandle } from "@/lib/handle";
+import { authClient } from "@/lib/auth-client";
 import { stickSizes } from "@/lib/kinds";
-import { origin } from "@/lib/origin";
 
 import { useAutosave } from "./autosave";
 import { field } from "./picker";
-import { attempt } from "./say";
 
 type Rig = NonNullable<Doc<"users">["rig"]>;
 
@@ -38,66 +39,146 @@ export const Status = ({ text }: { text: string }) => (
   </span>
 );
 
-const Handle = ({ user }: { user: Doc<"users"> }) => {
-  const rename = useMutation(api.users.rename);
-  const [handle, setHandle] = useState(user.handle);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, start] = useTransition();
-  const next = cleanHandle(handle);
-  const problem = useQuery(api.users.available, { handle: next });
-  const changed = next !== user.handle;
+const Linked = ({ user }: { user: Doc<"users"> }) => {
+  const params = useSearchParams();
+  const [pending, start] = useTransition();
+  const [error, setError] = useState(problem(params.get("error")));
 
-  const note = () => {
-    if (!changed) {
-      return error;
-    }
+  const link = (provider: "github" | "twitter") => {
+    start(async () => {
+      const { error: failed } = await authClient.linkSocial({
+        callbackURL: "/dashboard",
+        errorCallbackURL: "/dashboard",
+        provider,
+      });
 
-    if (problem === undefined) {
-      return "Checking…";
-    }
-
-    return problem ?? error ?? `Links to /${user.handle} will forward here.`;
+      if (failed !== null) {
+        setError("Couldn't reach the sign-in page. Try again.");
+      }
+    });
   };
 
+  const rows = [
+    {
+      account: user.x,
+      icon: <X />,
+      name: "X",
+      path: user.x === undefined ? null : user.handle,
+      provider: "twitter",
+      shown: user.x === undefined ? null : `@${user.x.handle}`,
+    },
+    {
+      account: user.gh,
+      icon: <GitHub />,
+      name: "GitHub",
+      path: user.gh === undefined ? null : `gh/${user.gh.handle.toLowerCase()}`,
+      provider: "github",
+      shown: user.gh?.handle ?? null,
+    },
+  ] as const;
+
   return (
-    <form
-      action={() => {
-        start(async () => {
-          setError(await attempt(async () => await rename({ handle: next })));
-        });
-      }}
-      className="flex flex-col gap-2 md:flex-row md:items-start"
-    >
-      <span className="pt-3 label text-muted md:w-36 md:shrink-0">Handle</span>
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex gap-2">
-          <div
-            className={`${field} flex h-11 min-w-0 flex-1 items-center font-mono`}
-          >
-            <span className="text-muted">{domain(origin("ram"))}/</span>
-            <input
-              aria-label="Your handle"
-              className="min-w-0 flex-1 bg-transparent outline-none"
-              onChange={(event) => {
-                setHandle(event.target.value);
-                setError(null);
-              }}
-              value={handle}
-            />
-          </div>
-          {changed && (
-            <button
-              className={`${solid} h-11`}
-              disabled={busy || problem !== null}
-              type="submit"
-            >
-              {busy ? "Saving…" : "Save"}
-            </button>
+    <div className="flex flex-col">
+      <span className="pb-3 label text-muted">Signed in with</span>
+      {rows.map((row) => (
+        <div
+          className="flex min-h-14 items-center gap-4 border-t border-rule py-2 last:border-b"
+          key={row.name}
+        >
+          <span className="flex w-5 justify-center">{row.icon}</span>
+          {row.shown === null ? (
+            <>
+              <span className="flex-1 font-mono text-muted">Not linked</span>
+              <button
+                className={`${outline} h-9 md:h-9`}
+                disabled={pending}
+                onClick={() => {
+                  link(row.provider);
+                }}
+                type="button"
+              >
+                Link {row.name}
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="flex-1 font-mono">{row.shown}</span>
+              <span className="label text-muted">
+                /{row.path === user.handle ? user.handle : `${row.path} → here`}
+              </span>
+            </>
           )}
         </div>
-        <span className="label text-muted">{note()}</span>
-      </div>
-    </form>
+      ))}
+      <p className="pt-3 text-muted">
+        {error ??
+          (user.x === undefined
+            ? "Link X and your page moves to your X handle. This link keeps working."
+            : "Your page follows your X handle. Rename on X and it moves the next time you sign in; old links keep working.")}
+      </p>
+    </div>
+  );
+};
+
+const Leave = () => {
+  const leave = useMutation(api.users.leave);
+  const [sure, setSure] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-rule pt-6">
+      {sure ? (
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            className={solid}
+            disabled={pending}
+            onClick={() => {
+              start(async () => {
+                const failed = await attempt(async () => await leave({}));
+
+                if (failed === null) {
+                  await forgetSignIn();
+                  window.location.assign("/");
+
+                  return;
+                }
+
+                setError(failed);
+              });
+            }}
+            type="button"
+          >
+            {pending ? "Deleting…" : "Delete my page for good"}
+          </button>
+          <button
+            className="label text-muted hover:text-ink"
+            onClick={() => {
+              setSure(false);
+            }}
+            type="button"
+          >
+            Keep it
+          </button>
+        </div>
+      ) : (
+        <button
+          className="self-start label text-muted hover:text-ink"
+          onClick={() => {
+            setSure(true);
+          }}
+          type="button"
+        >
+          Delete my page
+        </button>
+      )}
+      <span className="label text-muted">
+        {error ??
+          (sure
+            ? "Your list, your page and your sign-in go. Parts you sent stay sent, without your name."
+            : "")}
+      </span>
+    </div>
   );
 };
 
@@ -105,7 +186,7 @@ const You = ({ user }: { user: Doc<"users"> }) => {
   const save = useMutation(api.users.save);
 
   const [you, setYou, status] = useAutosave(
-    { name: user.name, note: user.note, x: user.x },
+    { name: user.name, note: user.note },
     async (value) => {
       await save(value);
 
@@ -119,7 +200,7 @@ const You = ({ user }: { user: Doc<"users"> }) => {
         <h2 className="title">You</h2>
         <Status text={status} />
       </div>
-      <Handle user={user} />
+      <Linked user={user} />
       <Line label="Name">
         <input
           className={`${field} h-11 font-mono`}
@@ -128,16 +209,6 @@ const You = ({ user }: { user: Doc<"users"> }) => {
             setYou({ ...you, name: event.target.value });
           }}
           value={you.name}
-        />
-      </Line>
-      <Line label="On X">
-        <input
-          className={`${field} h-11 font-mono`}
-          onChange={(event) => {
-            setYou({ ...you, x: event.target.value });
-          }}
-          placeholder="@ your X handle"
-          value={you.x}
         />
       </Line>
       <Line label="Note">
@@ -299,7 +370,10 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
 
 export const Profile = ({ user }: { user: Doc<"users"> }) => (
   <section className="grid grid-cols-1 gap-12 border-t-2 border-ink px-6 py-12 md:grid-cols-2 md:gap-16 md:px-16">
-    <You user={user} />
+    <div className="flex flex-col gap-10">
+      <You user={user} />
+      <Leave />
+    </div>
     <RigEditor user={user} />
   </section>
 );

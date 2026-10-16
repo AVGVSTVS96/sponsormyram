@@ -1,204 +1,151 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { outline, solid } from "@/app/ui/parts";
+import { authClient } from "@/lib/auth-client";
 
-import { continueWith, sendCode, verifyCode } from "./session";
+export const X = () => (
+  <svg aria-hidden className="size-[18px] fill-current" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
-const field =
-  "h-11 w-full rounded-chip border-2 border-ink bg-paper px-3 font-mono text-base outline-none placeholder:text-muted focus:border-pcb";
-
-const GitHub = () => (
-  <svg aria-hidden className="size-5 fill-current" viewBox="0 0 24 24">
+export const GitHub = () => (
+  <svg aria-hidden className="size-[18px] fill-current" viewBox="0 0 24 24">
     <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" />
   </svg>
 );
 
-const Google = () => (
-  <svg aria-hidden className="size-5 fill-current" viewBox="0 0 24 24">
-    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.19-1.79 4.13-1.15 1.15-2.93 2.4-6.05 2.4-4.83 0-8.6-3.89-8.6-8.72s3.77-8.72 8.6-8.72c2.6 0 4.5 1.03 5.9 2.35l2.31-2.31C18.75 1.44 16.13 0 12.48 0 5.87 0 .31 5.39.31 12s5.56 12 12.17 12c3.57 0 6.27-1.17 8.37-3.36 2.16-2.16 2.84-5.21 2.84-7.67 0-.76-.05-1.47-.17-2.05H12.48Z" />
-  </svg>
+const problems = new Map([
+  ["access_denied", "You canceled on the other side. Try again any time."],
+  [
+    "account_already_linked_to_different_user",
+    "That account already has its own page here.",
+  ],
+]);
+
+export const problem = (code: string | null) =>
+  code === null
+    ? null
+    : (problems.get(code) ?? "Sign-in didn't finish. Try again.");
+
+const Path = ({ name, path }: { name: string; path: string }) => (
+  <div className="flex items-center gap-3 border-t border-rule py-2.5 last:border-b">
+    <span className="w-16 shrink-0 label text-muted">{name}</span>
+    <span className="font-mono text-sm text-muted">
+      sponsormyram.com/<span className="text-ink">{path}</span>
+    </span>
+  </div>
 );
 
-const github = continueWith.bind(null, "github");
-const google = continueWith.bind(null, "google");
-
-const Form = () => {
+export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
   const params = useSearchParams();
-  const claim = params.get("claim");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const [error, setError] = useState(
-    params.has("failed") ? "Sign-in didn't finish. Try again." : null
-  );
-
   const [pending, start] = useTransition();
+  const [error, setError] = useState(problem(params.get("error")));
 
-  useEffect(() => {
-    if (claim !== null) {
-      localStorage.setItem("claim", claim);
-    }
-  }, [claim]);
-
-  const send = () => {
+  const go = (provider: "github" | "twitter") => {
     start(async () => {
-      const problem = await sendCode(email);
+      const { error: failed } = await authClient.signIn.social({
+        callbackURL,
+        errorCallbackURL: "/sign-in",
+        provider,
+      });
 
-      setError(problem);
-      setSent(problem === null);
+      if (failed !== null) {
+        setError("Couldn't reach the sign-in page. Try again.");
+      }
     });
   };
 
-  const verify = () => {
-    start(async () => {
-      setError((await verifyCode(email, code)) ?? null);
-    });
-  };
-
-  if (sent) {
-    return (
-      <form
-        className="flex flex-col gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          verify();
-        }}
-      >
-        <p>
-          We sent a code to <strong>{email}</strong>.
-        </p>
-        <input
-          aria-label="Code from the email"
-          autoComplete="one-time-code"
-          autoFocus
-          className={`${field} tracking-[0.4em]`}
-          inputMode="numeric"
-          maxLength={6}
-          onChange={(event) => {
-            setCode(event.target.value);
-          }}
-          placeholder="000000"
-          value={code}
-        />
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
         <button
           className={solid}
-          disabled={pending || code.length < 6}
-          type="submit"
-        >
-          {pending ? "Checking…" : "Sign in →"}
-        </button>
-        <button
-          className="pt-1 label text-muted hover:text-ink"
+          disabled={pending}
           onClick={() => {
-            setSent(false);
+            go("twitter");
           }}
           type="button"
         >
-          Wrong email? Start over
+          <X /> Continue with X
         </button>
-        {error !== null && (
-          <p className="text-center label text-ink">{error}</p>
-        )}
-      </form>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <form className="flex flex-col gap-3">
-        <button className={outline} formAction={github} type="submit">
+        <button
+          className={outline}
+          disabled={pending}
+          onClick={() => {
+            go("github");
+          }}
+          type="button"
+        >
           <GitHub /> Continue with GitHub
         </button>
-        <button className={outline} formAction={google} type="submit">
-          <Google /> Continue with Google
-        </button>
-      </form>
-      <div className="flex items-center gap-4 py-1 label text-muted">
-        <span className="h-px flex-1 bg-rule" />
-        or
-        <span className="h-px flex-1 bg-rule" />
       </div>
-      <form
-        className="flex flex-col gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          send();
-        }}
-      >
-        <input
-          aria-label="Email"
-          autoComplete="email"
-          className={field}
-          onChange={(event) => {
-            setEmail(event.target.value);
-          }}
-          placeholder="you@example.com"
-          type="email"
-          value={email}
-        />
-        <button
-          className={solid}
-          disabled={pending || email === ""}
-          type="submit"
-        >
-          {pending ? "Sending…" : "Email me a code →"}
-        </button>
-      </form>
-      <p
-        className={`pt-1 text-center label ${error === null ? "text-muted" : "text-ink"}`}
-      >
-        {error ?? "No password. Nothing gets posted for you."}
-      </p>
+      {error === null ? (
+        <div className="flex flex-col">
+          <Path name="X" path="yourhandle" />
+          <Path name="GitHub" path="gh/yourlogin" />
+        </div>
+      ) : (
+        <p className="label text-ink">{error}</p>
+      )}
+      <div className="flex justify-between gap-4 label text-muted">
+        <span>We never post for you.</span>
+        <Link className="hover:text-ink" href="/privacy">
+          Privacy
+        </Link>
+      </div>
     </div>
   );
 };
 
-const Card = ({
+export const Card = ({
   children,
+  heading,
+  label,
+  note,
   onClose,
 }: {
   children: React.ReactNode;
+  heading: string;
+  label: string;
+  note?: string;
   onClose: () => void;
 }) => (
-  <div className="flex w-full max-w-[440px] flex-col gap-5 rounded-sheet border-2 border-ink bg-paper p-8">
+  <div className="flex w-full max-w-[440px] flex-col gap-5 rounded-sheet border-2 border-ink bg-paper p-6 md:p-8">
     <div className="flex justify-between label">
-      <span>Sign in</span>
+      <span>{label}</span>
       <button
-        className="text-muted hover:text-ink"
+        className="label text-muted hover:text-ink"
         onClick={onClose}
         type="button"
       >
         Esc
       </button>
     </div>
-    <h2 className="title">Make your list in a minute.</h2>
+    <div className="flex flex-col gap-2">
+      <h2 className="title">{heading}</h2>
+      {note !== undefined && <p className="text-muted">{note}</p>}
+    </div>
     {children}
   </div>
 );
 
-export const Sheet = ({ onClose }: { onClose?: () => void }) => {
-  const router = useRouter();
+export const Dialog = ({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) => {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     dialog.current?.showModal();
   }, []);
-
-  if (onClose === undefined) {
-    return (
-      <Card
-        onClose={() => {
-          router.push("/");
-        }}
-      >
-        <Form />
-      </Card>
-    );
-  }
 
   return (
     <dialog
@@ -216,11 +163,39 @@ export const Sheet = ({ onClose }: { onClose?: () => void }) => {
         tabIndex={-1}
         type="button"
       />
-      <div className="relative w-full max-w-[440px]">
-        <Card onClose={onClose}>
-          <Form />
-        </Card>
-      </div>
+      <div className="relative flex w-full justify-center">{children}</div>
     </dialog>
   );
 };
+
+export const Sheet = ({
+  callbackURL = "/dashboard",
+  heading = "Make your list in a minute.",
+  label = "Sign in",
+  note,
+  onClose,
+}: {
+  callbackURL?: string;
+  heading?: string;
+  label?: string;
+  note?: string;
+  onClose?: () => void;
+}) => {
+  const router = useRouter();
+
+  const card = (close: () => void) => (
+    <Card heading={heading} label={label} note={note} onClose={close}>
+      <SignIn callbackURL={callbackURL} />
+    </Card>
+  );
+
+  if (onClose === undefined) {
+    return card(() => {
+      router.push("/");
+    });
+  }
+
+  return <Dialog onClose={onClose}>{card(onClose)}</Dialog>;
+};
+
+export default Sheet;

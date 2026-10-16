@@ -10,7 +10,6 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { domain } from "@/lib/brand";
 import { origin } from "@/lib/origin";
 
-import { Claim } from "./claim";
 import { List } from "./list";
 import { Money } from "./money";
 import { Profile } from "./profile";
@@ -63,7 +62,15 @@ export const Dashboard = () => {
   }
 
   if (me.user === null) {
-    return <Claim suggestion={me.suggestion} />;
+    return (
+      <section className="flex min-h-[60dvh] flex-col items-start gap-4 px-6 py-16 md:px-16">
+        <h1 className="title">Your page isn&apos;t set up yet.</h1>
+        <p className="max-w-[480px] text-muted">
+          Sign-in finished but your page didn&apos;t. Sign out and back in, and
+          it&apos;ll be made from your X or GitHub handle.
+        </p>
+      </section>
+    );
   }
 
   return (

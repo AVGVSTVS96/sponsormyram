@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { glyphs } from "@/app/ui/glyphs";
 import { outline, solid } from "@/app/ui/parts";
+import { attempt } from "@/app/ui/say";
 import { brandOf } from "@/lib/brand";
 import {
   capacity,
@@ -18,8 +19,6 @@ import {
   title,
 } from "@/lib/kinds";
 import type { Ask, Condition, HddAsk, Kind, RamAsk, SsdAsk } from "@/lib/kinds";
-
-import { attempt } from "./say";
 
 export const fresh = (kind: Kind, keep?: Ask): Ask => {
   const base = {
