@@ -308,3 +308,28 @@ export const one = query({
     };
   },
 });
+
+export const sitemap = query({
+  args: { brand: shelf },
+  handler: async (ctx, args) => {
+    const kinds =
+      args.brand === "ram" ? (["ram", "other"] as const) : [args.brand];
+
+    const items = await Promise.all(
+      kinds.map(
+        async (kind) =>
+          await ctx.db
+            .query("items")
+            .withIndex("by_kind", (q) => q.eq("kind", kind))
+            .take(5000)
+      )
+    );
+
+    const owned = await withOwners(ctx, items.flat());
+
+    return owned.map((each) => ({
+      handle: each.owner.handle,
+      slug: each.item.slug,
+    }));
+  },
+});

@@ -13,6 +13,14 @@ export const boardOf = async (kind: Brand) => {
   return await fetchQuery(api.items.board, { kind });
 };
 
+export const mapOf = async (brand: Brand) => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(`board:${brand}`);
+
+  return await fetchQuery(api.items.sitemap, { brand });
+};
+
 export const listOf = async (raw: string) => {
   "use cache";
   const handle = cleanHandle(raw);
