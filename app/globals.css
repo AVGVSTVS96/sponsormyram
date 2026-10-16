@@ -14,6 +14,79 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --radius-chip: 4px;
   --radius-sheet: 8px;
+  --animate-stamp: stamp var(--spring-fast) var(--ease-spring) backwards;
+  --animate-drop: drop var(--spring-base) var(--ease-spring) backwards;
+  --animate-roll: roll var(--spring-slow) var(--ease-spring) backwards;
+
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      rotate: -16deg;
+      scale: 1.8;
+    }
+  }
+
+  @keyframes drop {
+    from {
+      opacity: 0;
+      translate: 0 -160%;
+    }
+  }
+
+  @keyframes roll {
+    from {
+      translate: 0 0;
+    }
+  }
+}
+
+:root {
+  --ease-spring: linear(
+    0,
+    0.037,
+    0.13,
+    0.256,
+    0.397,
+    0.539,
+    0.671,
+    0.788,
+    0.885,
+    0.962,
+    1.019,
+    1.058,
+    1.082,
+    1.093,
+    1.094,
+    1.089,
+    1.079,
+    1.066,
+    1.053,
+    1.039,
+    1.027,
+    1.017,
+    1.008,
+    1.002,
+    0.997,
+    0.994,
+    0.992,
+    0.991,
+    0.991,
+    0.992,
+    0.993,
+    0.994,
+    0.995,
+    0.997,
+    0.998,
+    0.999,
+    0.999,
+    1,
+    1,
+    1.001,
+    1
+  );
+  --spring-fast: 360ms;
+  --spring-base: 520ms;
+  --spring-slow: 760ms;
 }
 
 @media (prefers-color-scheme: dark) {

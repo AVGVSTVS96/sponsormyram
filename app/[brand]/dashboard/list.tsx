@@ -29,7 +29,7 @@ const askOf = ({
 }: Doc<"items">): Ask => ask;
 
 const action =
-  "label text-muted transition-colors hover:text-ink disabled:opacity-30";
+  "label inline-flex h-11 min-w-11 items-center justify-center px-2.5 text-muted transition-colors hover:text-ink disabled:opacity-30 md:h-auto md:min-w-0 md:px-0";
 
 const adds = [
   ["ram", "+ Add RAM"],
@@ -38,7 +38,15 @@ const adds = [
   ["other", "+ Something else"],
 ] as const;
 
-const FillForm = ({ id, onDone }: { id: Id<"items">; onDone: () => void }) => {
+const FillForm = ({
+  id,
+  onCancel,
+  onFilled,
+}: {
+  id: Id<"items">;
+  onCancel: () => void;
+  onFilled: () => void;
+}) => {
   const fill = useMutation(api.items.fill);
   const [by, setBy] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +59,7 @@ const FillForm = ({ id, onDone }: { id: Id<"items">; onDone: () => void }) => {
         setError(problem);
 
         if (problem === null) {
-          onDone();
+          onFilled();
         }
       }}
       className="flex flex-wrap items-center gap-2"
@@ -59,17 +67,17 @@ const FillForm = ({ id, onDone }: { id: Id<"items">; onDone: () => void }) => {
       <input
         aria-label="Sponsor's X handle"
         autoFocus
-        className={`${field} h-9 w-44 font-mono text-sm`}
+        className={`${field} h-11 w-44 font-mono md:h-10`}
         onChange={(event) => {
           setBy(event.target.value);
         }}
         placeholder="@ who sent it"
         value={by}
       />
-      <button className={`${solid} h-9`} type="submit">
+      <button className={solid} type="submit">
         Mark filled
       </button>
-      <button className={action} onClick={onDone} type="button">
+      <button className={action} onClick={onCancel} type="button">
         Cancel
       </button>
       {error !== null && <span className="w-full label">{error}</span>}
@@ -152,6 +160,7 @@ export const List = () => {
 
   const [editing, setEditing] = useState<Editing>(null);
   const [removed, setRemoved] = useState<Doc<"items"> | null>(null);
+  const [landed, setLanded] = useState<Id<"items"> | null>(null);
   const [, start] = useTransition();
 
   if (items === undefined) {
@@ -212,17 +221,21 @@ export const List = () => {
                 {title(item)}
               </span>
               <div className="md:w-72">
-                <Chips item={item} />
+                <Chips item={item} lands={item._id === landed} />
               </div>
               {editing?.type === "fill" && editing.id === item._id ? (
                 <FillForm
                   id={item._id}
-                  onDone={() => {
+                  onCancel={() => {
                     setEditing(null);
+                  }}
+                  onFilled={() => {
+                    setEditing(null);
+                    setLanded(item._id);
                   }}
                 />
               ) : (
-                <div className="flex items-center gap-5 md:w-64 md:justify-end">
+                <div className="-mx-2.5 flex items-center md:mx-0 md:w-64 md:justify-end md:gap-5">
                   <button
                     className={action}
                     onClick={() => {

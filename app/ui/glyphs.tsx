@@ -62,11 +62,24 @@ const slotSize = {
   ssd: "h-4 w-18",
 } satisfies Record<Brand, string>;
 
-export const Slot = ({ brand, filled }: { brand: Brand; filled: boolean }) => {
+export const Slot = ({
+  brand,
+  filled,
+  order,
+}: {
+  brand: Brand;
+  filled: boolean;
+  order: number;
+}) => {
   const Glyph = glyphs[brand];
 
   return filled ? (
-    <Glyph className={slotSize[brand]} />
+    <span
+      className="inline-flex motion-safe:animate-drop"
+      style={{ animationDelay: `${order * 12}ms` }}
+    >
+      <Glyph className={slotSize[brand]} />
+    </span>
   ) : (
     <span className={`${slotSize[brand]} border border-dashed border-ink`} />
   );

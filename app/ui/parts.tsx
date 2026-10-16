@@ -19,7 +19,13 @@ export const outline = `${button.base} ${button.ghost}`;
 const chip =
   "label inline-flex h-6 items-center rounded-chip px-2 whitespace-nowrap";
 
-export const Chips = ({ item }: { item: Doc<"items"> }) => (
+export const Chips = ({
+  item,
+  lands = false,
+}: {
+  item: Doc<"items">;
+  lands?: boolean;
+}) => (
   <div className="flex flex-wrap gap-2">
     <span className={`${chip} bg-ink text-paper`}>{kindLabels[item.kind]}</span>
     {item.sponsor === undefined ? (
@@ -27,7 +33,9 @@ export const Chips = ({ item }: { item: Doc<"items"> }) => (
         {conditions[item.condition].chip}
       </span>
     ) : (
-      <span className={`${chip} bg-gold text-coal`}>
+      <span
+        className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-stamp" : ""}`}
+      >
         Sponsored by @{item.sponsor.by}
       </span>
     )}

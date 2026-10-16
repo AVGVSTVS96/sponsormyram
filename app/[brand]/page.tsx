@@ -18,6 +18,7 @@ import {
   sponsorItem,
 } from "@/app/ui/parts";
 import { installed } from "@/app/ui/rig";
+import { Roll } from "@/app/ui/roll";
 import { brands, domain } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
 import { size, title } from "@/lib/kinds";
@@ -82,7 +83,10 @@ const Featured = async ({
           </span>
         </div>
         <span className="text-[56px] leading-[50px] font-extrabold tracking-[-0.05em] md:text-[64px] md:leading-[58px]">
-          <span className="text-pcb">{shown.figure}</span> {shown.title}
+          <span className="text-pcb">
+            <Roll text={shown.figure ?? ""} />
+          </span>{" "}
+          {shown.title}
         </span>
       </div>
       {rig !== undefined && rig.slots.length > 0 && (
@@ -201,7 +205,7 @@ const Landing = async () => {
             <div className="flex flex-col gap-2 md:items-end">
               <span className="label text-muted">Collectively short</span>
               <span className="display text-pcb">
-                {size(board.totals.short)}
+                <Roll text={size(board.totals.short)} />
               </span>
               <span className="label text-muted">
                 of {word} · {plural(board.totals.lists, "list")}
@@ -222,7 +226,7 @@ const Landing = async () => {
             </div>
             <div className="flex flex-wrap gap-3">
               {board.slots.map((filled, index) => (
-                <Slot brand={brand} filled={filled} key={index} />
+                <Slot brand={brand} filled={filled} key={index} order={index} />
               ))}
             </div>
           </section>

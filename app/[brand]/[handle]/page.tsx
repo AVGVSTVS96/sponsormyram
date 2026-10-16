@@ -21,6 +21,7 @@ import {
   sponsorItem,
 } from "@/app/ui/parts";
 import { installed, RigView } from "@/app/ui/rig";
+import { Roll } from "@/app/ui/roll";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { brands } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
@@ -81,7 +82,9 @@ const Stat = ({ brand, page }: { brand: Brand; page: Page }) => {
       <span className="label text-muted">
         {short.rig ? "Short of the board max" : "Asking for"}
       </span>
-      <span className="display text-pcb">{size(short.gb)}</span>
+      <span className="display text-pcb">
+        <Roll text={size(short.gb)} />
+      </span>
       <span className="label text-muted">
         {short.rig && rig !== undefined
           ? `${installed(rig)} of ${rig.maxGB}GB installed`

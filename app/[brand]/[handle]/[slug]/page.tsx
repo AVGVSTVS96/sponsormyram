@@ -113,7 +113,7 @@ const ItemPage = async ({ params }: PageProps<"/[brand]/[handle]/[slug]">) => {
               {title(item)}
             </h1>
             {item.sponsor !== undefined && (
-              <div className="mt-6 inline-flex -rotate-3 flex-col items-center gap-1 rounded-chip border-2 border-coal bg-gold px-6 py-3 text-coal md:absolute md:top-0 md:right-0 md:mt-0">
+              <div className="mt-6 inline-flex -rotate-3 flex-col items-center gap-1 rounded-chip border-2 border-coal bg-gold px-6 py-3 text-coal motion-safe:animate-stamp md:absolute md:top-0 md:right-0 md:mt-0">
                 <span className="font-mono text-2xl font-bold tracking-[0.12em] uppercase">
                   Sponsored
                 </span>
