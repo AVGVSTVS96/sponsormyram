@@ -302,6 +302,7 @@ export const one = query({
         handle: user.handle,
         hidden: user.hidden === true,
         name: user.name,
+        pay: user.pay ?? [],
         rig: user.rig,
         x: user.x,
       },

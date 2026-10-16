@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 import { hddAsk, otherAsk, ramAsk, ssdAsk } from "../lib/kinds";
+import { payTo } from "../lib/pay";
 
 const placed = {
   oldSlugs: v.optional(v.array(v.string())),
@@ -55,6 +56,7 @@ export default defineSchema({
     hidden: v.optional(v.boolean()),
     name: v.string(),
     note: v.string(),
+    pay: v.optional(v.array(payTo)),
     rig: v.optional(rig),
     tokenIdentifier: v.optional(v.string()),
     x: v.string(),

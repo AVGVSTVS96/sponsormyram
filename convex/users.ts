@@ -7,6 +7,7 @@ import {
   suggestHandle,
   xProblem,
 } from "../lib/handle";
+import { payTo, problemOf, settle } from "../lib/pay";
 import { mutation, query } from "./_generated/server";
 import { change, revalidate } from "./counters";
 import { byHandle, listOf, owner, pastHandle, viewer } from "./model";
@@ -198,6 +199,26 @@ export const saveRig = mutation({
   },
 });
 
+export const savePay = mutation({
+  args: { pay: v.array(payTo) },
+  handler: async (ctx, args) => {
+    const user = await owner(ctx);
+    const pay = settle(args.pay);
+
+    const problem = pay
+      .map(problemOf)
+      .find((each): each is string => each !== null);
+
+    if (problem !== undefined) {
+      throw new ConvexError(problem);
+    }
+
+    await change(ctx, user._id, async () => {
+      await ctx.db.patch("users", user._id, { pay });
+    });
+  },
+});
+
 export const page = query({
   args: { handle: v.string() },
   handler: async (ctx, args) => {
@@ -215,6 +236,7 @@ export const page = query({
         hidden: user.hidden === true,
         name: user.name,
         note: user.note,
+        pay: user.pay ?? [],
         rig: user.rig,
         x: user.x,
       },
