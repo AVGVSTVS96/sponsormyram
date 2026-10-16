@@ -139,7 +139,7 @@ const Featured = async ({
                   <Chips item={item} />
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
                 <span className="label text-muted md:hidden">
                   {number(items.indexOf(item))}
                 </span>
