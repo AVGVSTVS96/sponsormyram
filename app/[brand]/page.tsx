@@ -69,9 +69,17 @@ const Featured = async ({
   }
 
   const { items, user } = page;
-  const shown = standing(brand, page);
+  const headline = standing(brand, page);
   const rig = brand === "ram" ? user.rig : undefined;
   const open = items.filter((item) => item.sponsor === undefined);
+
+  const asks =
+    brand === "ram"
+      ? open
+      : [
+          ...open.filter((item) => item.kind === brand),
+          ...open.filter((item) => item.kind !== brand),
+        ];
 
   return (
     <div className="flex w-full shrink-0 flex-col border-2 border-ink md:w-[600px]">
@@ -84,9 +92,9 @@ const Featured = async ({
         </div>
         <span className="text-[56px] leading-[50px] font-extrabold tracking-[-0.05em] md:text-[64px] md:leading-[58px]">
           <span className="text-pcb">
-            <Roll text={shown.figure ?? ""} />
+            <Roll text={headline.figure ?? ""} />
           </span>{" "}
-          {shown.title}
+          {headline.title}
         </span>
       </div>
       {rig !== undefined && rig.slots.length > 0 && (
@@ -109,7 +117,7 @@ const Featured = async ({
         </div>
       )}
       <ol>
-        {open.slice(0, 3).map((item) => {
+        {asks.slice(0, 3).map((item) => {
           const sponsor = sponsorItem(user.handle, user.x, item);
 
           return (
