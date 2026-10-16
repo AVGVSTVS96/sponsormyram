@@ -3,21 +3,34 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "convex dev --start 'next dev'",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check": "next typegen && oxlint && oxfmt --check",
+    "fix": "oxlint --fix; oxfmt",
+    "prepare": "if git rev-parse --git-dir >/dev/null 2>&1; then lefthook install; fi"
   },
   "dependencies": {
+    "@workos-inc/authkit-nextjs": "4.4.0",
+    "@workos-inc/node": "10.14.0",
+    "convex": "1.47.0",
     "next": "16.4.2",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@convex-dev/eslint-plugin": "5.0.0",
+    "@oxlint/plugins": "1.88.0",
     "@tailwindcss/postcss": "4.3.3",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "lefthook": "2.2.2",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
     "tailwindcss": "4.3.3",
-    "typescript": "latest"
+    "typescript": "7.0.2",
+    "ultracite": "8.0.1"
   }
 }
