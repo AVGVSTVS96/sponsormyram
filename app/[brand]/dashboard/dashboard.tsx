@@ -12,6 +12,7 @@ import { origin } from "@/lib/origin";
 
 import { Claim } from "./claim";
 import { List } from "./list";
+import { Money } from "./money";
 import { Profile } from "./profile";
 
 const Band = ({ user }: { user: Doc<"users"> }) => {
@@ -69,6 +70,7 @@ export const Dashboard = () => {
     <>
       <Band user={me.user} />
       <List />
+      <Money user={me.user} />
       <Profile user={me.user} />
     </>
   );

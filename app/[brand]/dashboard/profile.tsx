@@ -32,7 +32,7 @@ const Line = ({
   </label>
 );
 
-const Status = ({ text }: { text: string }) => (
+export const Status = ({ text }: { text: string }) => (
   <span className={`label ${text.startsWith("✓") ? "text-pcb" : "text-muted"}`}>
     {text}
   </span>
