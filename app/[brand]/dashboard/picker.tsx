@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 
-import { glyphs } from "@/app/ui/glyphs";
+import { faceOf, Fitted, Part } from "@/app/ui/hardware";
+import { Led } from "@/app/ui/lights";
 import { outline, solid } from "@/app/ui/parts";
 import { attempt } from "@/app/ui/say";
-import { brandOf } from "@/lib/brand";
 import {
   capacity,
   conditions,
@@ -43,7 +43,7 @@ export const fresh = (kind: Kind, keep?: Ask): Ask => {
 };
 
 const pill =
-  "label h-9 rounded-chip border-2 px-3 normal-case tracking-normal transition-colors";
+  "press flex h-10 items-center border-2 px-3.5 text-[15px] whitespace-nowrap";
 
 const Choice = <T extends string | number | undefined>({
   onPick,
@@ -54,11 +54,11 @@ const Choice = <T extends string | number | undefined>({
   options: readonly (readonly [T, string])[];
   value: T;
 }) => (
-  <div className="flex flex-wrap gap-2">
+  <div className="flex flex-wrap gap-1.5">
     {options.map(([option, label]) => (
       <button
         aria-pressed={option === value}
-        className={`${pill} ${option === value ? "border-ink bg-ink text-paper" : "border-rule hover:border-ink"}`}
+        className={`${pill} ${option === value ? "border-ink bg-ink font-semibold text-paper" : "border-rule font-medium hover:border-ink"}`}
         key={label}
         onClick={() => {
           onPick(option);
@@ -78,9 +78,9 @@ const Row = ({
   children: React.ReactNode;
   label: string;
 }) => (
-  <div className="flex flex-col gap-2 md:flex-row md:items-start md:gap-0">
-    <span className="label pt-3 text-muted md:w-36 md:shrink-0">{label}</span>
-    <div className="min-w-0 flex-1">{children}</div>
+  <div className="flex flex-col gap-2.5">
+    <span className="text-[15px] font-medium text-muted">{label}</span>
+    {children}
   </div>
 );
 
@@ -211,7 +211,7 @@ const HddFields = ({
 );
 
 export const field =
-  "w-full rounded-chip border-2 border-ink bg-paper px-3 py-2 outline-none placeholder:text-muted focus:border-pcb";
+  "w-full border-2 border-ink bg-paper px-3.5 py-2.5 text-base outline-none placeholder:text-muted focus:border-gold";
 
 const SpecFields = ({ ask, set }: { ask: Ask; set: (ask: Ask) => void }) => {
   if (ask.kind === "ram") {
@@ -230,7 +230,7 @@ const SpecFields = ({ ask, set }: { ask: Ask; set: (ask: Ask) => void }) => {
     <Row label="What">
       <input
         aria-label="What you need"
-        className={`${field} h-11`}
+        className={`${field} h-12`}
         maxLength={60}
         onChange={(event) => {
           set({ ...ask, title: event.target.value });
@@ -242,22 +242,51 @@ const SpecFields = ({ ask, set }: { ask: Ask; set: (ask: Ask) => void }) => {
   );
 };
 
+const Kinds = ({ ask, onPick }: { ask: Ask; onPick: (kind: Kind) => void }) => (
+  <div className="grid grid-cols-4 gap-1.5">
+    {kinds.map((kind) => (
+      <button
+        aria-pressed={kind === ask.kind}
+        className={`flex aspect-square press flex-col items-center justify-center gap-2.5 border-2 bg-paper p-2 text-[15px] font-semibold ${kind === ask.kind ? "border-[3px] border-ink" : "border-rule hover:border-ink"}`}
+        key={kind}
+        onClick={() => {
+          onPick(kind);
+        }}
+        type="button"
+      >
+        {kind === "other" ? (
+          <span className="text-2xl leading-none font-extrabold">?</span>
+        ) : (
+          <Part
+            className={kind === "hdd" ? "h-7" : "w-[80%]"}
+            kind={faceOf(fresh(kind))}
+          />
+        )}
+        {kindLabels[kind]}
+      </button>
+    ))}
+  </div>
+);
+
 const Preview = ({ ask }: { ask: Ask }) => {
-  const Glyph = ask.kind === "other" ? null : glyphs[brandOf(ask.kind)];
   const total = capacity(ask);
+  const named = title(ask);
 
   return (
-    <div className="flex flex-col gap-4">
-      <span className="label text-muted">Preview</span>
-      {Glyph !== null && (
-        <Glyph
-          className={ask.kind === "hdd" ? "w-28" : "w-full max-w-[320px]"}
-        />
-      )}
-      <span className="title">{title(ask) === "" ? "…" : title(ask)}</span>
-      <span className="label text-muted">
-        {total === 0 ? "" : `${size(total)} total · `}
-        {conditions[ask.condition].chip}
+    <div className="relative flex flex-col gap-3.5 bg-board px-6 pt-11 pb-6 text-silk">
+      <span className="absolute top-4.5 left-6 flex items-center gap-2">
+        <Led className="size-2.5" light="open" />
+        <span className="silk text-silksub">
+          Preview&nbsp;&nbsp;&nbsp;needed
+        </span>
+      </span>
+      <Fitted ask={ask} className="w-full max-w-[300px]" light="filled" />
+      <span className="text-[22px] leading-tight font-bold tracking-[-0.01em] text-balance">
+        {named.trim() === "" || named.endsWith(" ") ? "…" : named}
+      </span>
+      <span className="text-[15px] text-silksub">
+        {total === 0 ? "" : `${size(total)} total. `}
+        {conditions[ask.condition].spec}.
       </span>
     </div>
   );
@@ -271,9 +300,9 @@ export const Picker = ({
   onSave,
   saveLabel,
 }: {
-  heading: string;
+  heading?: string;
   initial: Ask;
-  onCancel: () => void;
+  onCancel?: () => void;
   onDelete?: () => void;
   onSave: (ask: Ask) => Promise<void>;
   saveLabel: string;
@@ -293,100 +322,92 @@ export const Picker = ({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-10 border-t-2 border-ink py-8 md:grid-cols-[1fr_320px] md:pl-16">
-      <div className="flex flex-col gap-4">
-        <span className="label">{heading}</span>
-        <Row label="Kind">
-          <Choice
-            onPick={(kind) => {
-              setAsk(kind === ask.kind ? ask : fresh(kind, ask));
+    <div className="flex flex-col gap-6">
+      {heading !== undefined && (
+        <h3 className="text-2xl font-bold tracking-[-0.02em]">{heading}</h3>
+      )}
+      <Row label="Kind">
+        <Kinds
+          ask={ask}
+          onPick={(kind) => {
+            setAsk(kind === ask.kind ? ask : fresh(kind, ask));
+          }}
+        />
+      </Row>
+      <SpecFields ask={ask} set={setAsk} />
+      <Row label="How many">
+        <div className="inline-flex h-12 items-stretch self-start border-2 border-ink">
+          <button
+            aria-label="One fewer"
+            className="w-12 press text-lg font-bold hover:bg-ink hover:text-paper"
+            onClick={() => {
+              setAsk({ ...ask, count: Math.max(1, ask.count - 1) });
             }}
-            options={kinds.map((kind) => [kind, kindLabels[kind]] as const)}
-            value={ask.kind}
-          />
-        </Row>
-        <SpecFields ask={ask} set={setAsk} />
-        <Row label="How many">
-          <div className="rounded-chip inline-flex h-10 items-stretch border-2 border-ink">
-            <button
-              aria-label="One fewer"
-              className="w-10 font-bold hover:bg-ink hover:text-paper"
-              onClick={() => {
-                setAsk({ ...ask, count: Math.max(1, ask.count - 1) });
-              }}
-              type="button"
-            >
-              −
-            </button>
-            <span className="flex w-12 items-center justify-center border-x-2 border-ink font-mono">
-              {ask.count}
-            </span>
-            <button
-              aria-label="One more"
-              className="w-10 font-bold hover:bg-ink hover:text-paper"
-              onClick={() => {
-                setAsk({ ...ask, count: Math.min(16, ask.count + 1) });
-              }}
-              type="button"
-            >
-              +
-            </button>
-          </div>
-        </Row>
-        <Row label="Condition">
-          <Choice
-            onPick={(condition: Condition) => {
-              setAsk({ ...ask, condition });
+            type="button"
+          >
+            −
+          </button>
+          <span className="flex w-12 items-center justify-center text-lg font-bold">
+            {ask.count}
+          </span>
+          <button
+            aria-label="One more"
+            className="w-12 press text-lg font-bold hover:bg-ink hover:text-paper"
+            onClick={() => {
+              setAsk({ ...ask, count: Math.min(16, ask.count + 1) });
             }}
-            options={[
-              ["new", conditions.new.picker],
-              ["used", conditions.used.picker],
-              ["recert", conditions.recert.picker],
-            ]}
-            value={ask.condition}
-          />
-        </Row>
-        <Row label="Why">
-          <textarea
-            aria-label="Why you need it"
-            className={`${field} min-h-20 resize-y`}
-            maxLength={280}
-            onChange={(event) => {
-              setAsk({ ...ask, note: event.target.value });
-            }}
-            placeholder="What it fixes. Sponsors like a reason."
-            value={ask.note}
-          />
-        </Row>
-      </div>
-      <div className="flex flex-col justify-between gap-8 md:border-l md:border-rule md:pl-8">
-        <Preview ask={ask} />
-        <div className="flex flex-col gap-3">
-          {error !== null && <span className="label">{error}</span>}
-          <div className="flex flex-wrap gap-2">
-            <button className={outline} onClick={onCancel} type="button">
-              Cancel
-            </button>
-            <button
-              className={solid}
-              disabled={busy}
-              onClick={save}
-              type="button"
-            >
-              {saveLabel}
-            </button>
-          </div>
-          {onDelete !== undefined && (
-            <button
-              className="label self-start text-muted hover:text-ink"
-              onClick={onDelete}
-              type="button"
-            >
-              Delete this ask
-            </button>
-          )}
+            type="button"
+          >
+            +
+          </button>
         </div>
+      </Row>
+      <Row label="Condition">
+        <Choice
+          onPick={(condition: Condition) => {
+            setAsk({ ...ask, condition });
+          }}
+          options={[
+            ["new", conditions.new.picker],
+            ["used", conditions.used.picker],
+            ["recert", conditions.recert.picker],
+          ]}
+          value={ask.condition}
+        />
+      </Row>
+      <Row label="Why">
+        <textarea
+          aria-label="Why you need it"
+          className={`${field} min-h-24 resize-y`}
+          maxLength={280}
+          onChange={(event) => {
+            setAsk({ ...ask, note: event.target.value });
+          }}
+          placeholder="What it fixes. Sponsors like a reason."
+          value={ask.note}
+        />
+      </Row>
+      <Preview ask={ask} />
+      {error !== null && <p className="text-[15px] font-semibold">{error}</p>}
+      <div className="flex flex-col gap-2.5">
+        <button className={solid} disabled={busy} onClick={save} type="button">
+          {busy ? "Saving…" : saveLabel}
+        </button>
+        {onCancel !== undefined && (
+          <button className={outline} onClick={onCancel} type="button">
+            Cancel
+          </button>
+        )}
       </div>
+      {onDelete !== undefined && (
+        <button
+          className="press self-start text-[15px] font-medium text-muted link hover:text-ink"
+          onClick={onDelete}
+          type="button"
+        >
+          Delete this ask
+        </button>
+      )}
     </div>
   );
 };

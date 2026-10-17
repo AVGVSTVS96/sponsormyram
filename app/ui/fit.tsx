@@ -52,7 +52,7 @@ export const Fit = ({
   lines: string[];
   track?: number;
 }) => (
-  <As className={`fit min-w-0 grow ${className}`}>
+  <As className={`fit min-w-0 ${className}`}>
     <span
       className={flow ? "block text-balance" : "flex flex-col"}
       style={{

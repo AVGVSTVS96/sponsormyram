@@ -3,15 +3,17 @@
 import { useMutation, useQuery } from "convex/react";
 import { useTransition } from "react";
 
-import { reachOwner, tellOwner, who } from "@/app/ui/parts";
+import { Bag, faceOf } from "@/app/ui/hardware";
+import { X } from "@/app/ui/icons";
+import { outline, reachOwner, small, tellOwner, who } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
-import { title } from "@/lib/kinds";
+
+import { Title } from "./list";
 
 const since = (at: number) =>
   new Date(at).toLocaleDateString("en-US", { day: "numeric", month: "short" });
 
-const action =
-  "label inline-flex h-11 items-center px-2.5 text-muted transition-colors hover:text-ink md:h-auto md:px-0";
+const quiet = "press link text-[15px] font-semibold";
 
 export const Sends = () => {
   const sends = useQuery(api.items.sends);
@@ -23,51 +25,58 @@ export const Sends = () => {
   }
 
   return (
-    <section className="border-t-2 border-ink px-6 py-12 md:px-16">
-      <div className="flex items-baseline justify-between gap-4 pb-6">
-        <h2 className="title">You&apos;re sending</h2>
-        <span className="label hidden text-muted md:block">
-          It turns gold when they confirm
-        </span>
-      </div>
-      <ol>
+    <section className="flex flex-col gap-5">
+      <h2 className="text-4xl leading-none font-extrabold tracking-[-0.045em] md:text-[44px]">
+        You’re sending
+      </h2>
+      <ol className="flex flex-col gap-3">
         {sends.map(({ item, owner }) => (
           <li
-            className="flex flex-col gap-3 border-t border-rule py-5 md:flex-row md:items-center md:justify-between"
+            className="flex flex-col gap-5 border-[3px] border-gold p-5 md:flex-row md:items-center md:gap-6"
             key={item._id}
           >
-            <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-4">
+            <Bag className="w-[150px] shrink-0" kind={faceOf(item)} />
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
               <a
-                className="title hover:underline"
+                className="hover:underline"
                 href={`/${owner.handle}/${item.slug}`}
               >
-                {title(item)}
+                <Title
+                  className="text-xl leading-tight font-bold tracking-[-0.02em] md:text-[22px]"
+                  item={item}
+                />
               </a>
-              <span className="label text-muted">
-                for {who(owner)}
+              <p className="text-[15px] md:text-base">
+                For {who(owner)}
                 {item.sending === undefined
                   ? ""
-                  : ` · since ${since(item.sending.at)}`}
-              </span>
+                  : `, since ${since(item.sending.at)}`}
+                . They turn it gold when it&nbsp;lands.
+              </p>
             </div>
-            <div className="-mx-2.5 flex items-center md:mx-0 md:gap-5">
-              <a className={action} href={tellOwner(owner, item)}>
-                Tell {who(owner)}
-              </a>
-              <a className={action} href={reachOwner(owner)}>
-                {owner.x === undefined ? "GitHub" : "DM"}
-              </a>
-              <button
-                className={action}
-                onClick={() => {
-                  start(async () => {
-                    await unsend({ id: item._id });
-                  });
-                }}
-                type="button"
+            <div className="flex flex-col items-start gap-2.5 md:items-end">
+              <a
+                className={`${outline} ${small}`}
+                href={tellOwner(owner, item)}
               >
-                Back out
-              </button>
+                <X /> Tell {who(owner)}
+              </a>
+              <span className="flex gap-4">
+                <a className={quiet} href={reachOwner(owner)}>
+                  {owner.x === undefined ? "Their GitHub" : "DM"}
+                </a>
+                <button
+                  className={quiet}
+                  onClick={() => {
+                    start(async () => {
+                      await unsend({ id: item._id });
+                    });
+                  }}
+                  type="button"
+                >
+                  Back out
+                </button>
+              </span>
             </div>
           </li>
         ))}

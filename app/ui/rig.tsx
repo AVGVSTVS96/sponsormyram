@@ -178,6 +178,7 @@ export const RigBoard = ({
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <Fit
           cap={56}
+          className="flex-1"
           flow
           lead={1}
           lines={["The rig,", "slot by slot"]}

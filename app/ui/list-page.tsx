@@ -159,7 +159,13 @@ const Asks = ({ page, site }: { page: Page; site: Brand }) => {
   return (
     <section className="flex flex-col gap-5 px-5 pt-14 pb-16 md:gap-10 md:px-16 md:pt-30 md:pb-30">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <Fit cap={72} lead={1} lines={["What it needs"]} track={-0.045} />
+        <Fit
+          cap={72}
+          className="flex-1"
+          lead={1}
+          lines={["What it needs"]}
+          track={-0.045}
+        />
         {items.length > 1 && (
           <p className="text-muted md:text-lg">Most wanted first.</p>
         )}

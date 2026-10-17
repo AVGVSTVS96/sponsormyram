@@ -365,6 +365,7 @@ const Founding = ({
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <Fit
           cap={40}
+          className="flex-1"
           lead={1.05}
           lines={["One light", "per part"]}
           flow

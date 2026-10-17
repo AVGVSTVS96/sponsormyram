@@ -7,17 +7,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { outline, solid } from "@/app/ui/parts";
 import { authClient } from "@/lib/auth-client";
 
-export const X = () => (
-  <svg aria-hidden className="size-[18px] fill-current" viewBox="0 0 24 24">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
+import { Fitted } from "./hardware";
+import { GitHub, X } from "./icons";
+import { Led } from "./lights";
+import { sample } from "./story";
 
-export const GitHub = () => (
-  <svg aria-hidden className="size-[18px] fill-current" viewBox="0 0 24 24">
-    <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z" />
-  </svg>
-);
+export { GitHub, X } from "./icons";
 
 const problems = new Map([
   ["access_denied", "You canceled on the other side. Try again any time."],
@@ -31,15 +26,6 @@ export const problem = (code: string | null) =>
   code === null
     ? null
     : (problems.get(code) ?? "Sign-in didn't finish. Try again.");
-
-const Path = ({ name, path }: { name: string; path: string }) => (
-  <div className="flex items-center gap-3 border-t border-rule py-2.5 last:border-b">
-    <span className="label w-16 shrink-0 text-muted">{name}</span>
-    <span className="font-mono text-sm text-muted">
-      sponsormyram.com/<span className="text-ink">{path}</span>
-    </span>
-  </div>
-);
 
 export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
   const params = useSearchParams();
@@ -62,7 +48,7 @@ export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <button
           className={solid}
           disabled={pending}
@@ -85,14 +71,14 @@ export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
         </button>
       </div>
       {error === null ? (
-        <div className="flex flex-col">
-          <Path name="X" path="yourhandle" />
-          <Path name="GitHub" path="gh/yourlogin" />
-        </div>
+        <p className="text-[15px] text-muted">
+          X gives you sponsormyram.com/yourhandle. GitHub gives you
+          sponsormyram.com/gh/yourlogin.
+        </p>
       ) : (
-        <p className="label text-ink">{error}</p>
+        <p className="text-[15px] font-semibold">{error}</p>
       )}
-      <div className="label flex justify-between gap-4 text-muted">
+      <div className="flex justify-between gap-4 text-[15px] text-muted">
         <span>We never post for you.</span>
         <Link className="hover:text-ink" href="/privacy">
           Privacy
@@ -103,32 +89,37 @@ export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
 };
 
 export const Card = ({
+  art,
   children,
   heading,
   label,
   note,
   onClose,
 }: {
+  art?: React.ReactNode;
   children: React.ReactNode;
   heading: string;
   label: string;
   note?: string;
   onClose: () => void;
 }) => (
-  <div className="rounded-sheet flex w-full max-w-[440px] flex-col gap-5 border-2 border-ink bg-paper p-6 md:p-8">
-    <div className="label flex justify-between">
-      <span>{label}</span>
+  <div className="flex w-full flex-col gap-5 border-ink bg-paper px-5 pt-7 pb-8 on-paper md:max-w-[440px] md:border-2 md:p-8">
+    <div className="flex items-center justify-between">
+      <span className="silk text-muted">{label}</span>
       <button
-        className="label text-muted hover:text-ink"
+        className="press text-[15px] font-medium text-muted hover:text-ink"
         onClick={onClose}
         type="button"
       >
-        Esc
+        Close
       </button>
     </div>
-    <div className="flex flex-col gap-2">
-      <h2 className="title">{heading}</h2>
-      {note !== undefined && <p className="text-muted">{note}</p>}
+    {art !== undefined && <div className="flex">{art}</div>}
+    <div className="flex flex-col gap-2.5">
+      <h2 className="text-[28px] leading-[1.1] font-bold tracking-[-0.03em] text-balance md:text-3xl">
+        {heading}
+      </h2>
+      {note !== undefined && <p className="text-[17px]">{note}</p>}
     </div>
     {children}
   </div>
@@ -149,7 +140,7 @@ export const Dialog = ({
 
   return (
     <dialog
-      className="m-0 size-full max-h-none max-w-none place-items-center bg-transparent p-6 backdrop:bg-coal/45 open:grid"
+      className="m-0 size-full max-h-none max-w-none items-end justify-center bg-transparent backdrop:bg-coal/55 open:flex md:items-center md:p-6"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -163,16 +154,29 @@ export const Dialog = ({
         tabIndex={-1}
         type="button"
       />
-      <div className="relative flex w-full justify-center">{children}</div>
+      <div className="relative flex w-full justify-center transition-[translate,opacity,scale] duration-320 ease-drawer motion-safe:starting:translate-y-full md:motion-safe:starting:translate-y-0 md:motion-safe:starting:scale-97 md:motion-safe:starting:opacity-0">
+        <span
+          aria-hidden
+          className="absolute top-2.5 left-1/2 h-1 w-10 -translate-x-1/2 bg-rule md:hidden"
+        />
+        {children}
+      </div>
     </dialog>
   );
 };
 
+export const Claim = () => (
+  <div className="flex items-end gap-3">
+    <Led className="size-3.5" light="open" />
+    <Fitted ask={sample.ram} className="w-[220px]" light="open" />
+  </div>
+);
+
 export const Sheet = ({
   callbackURL = "/dashboard",
-  heading = "Make your list in a minute.",
+  heading = "Claim your slot",
   label = "Sign in",
-  note,
+  note = "Sign in with the account you’ll share from. Your page takes its handle, which proves it’s you.",
   onClose,
 }: {
   callbackURL?: string;
@@ -184,7 +188,13 @@ export const Sheet = ({
   const router = useRouter();
 
   const card = (close: () => void) => (
-    <Card heading={heading} label={label} note={note} onClose={close}>
+    <Card
+      art={<Claim />}
+      heading={heading}
+      label={label}
+      note={note}
+      onClose={close}
+    >
       <SignIn callbackURL={callbackURL} />
     </Card>
   );

@@ -5,32 +5,20 @@ import type { Brand } from "@/lib/brand";
 import type { parsePath } from "@/lib/handle";
 import { origin } from "@/lib/origin";
 
+import { Fit } from "./fit";
 import { Footer, Header } from "./frame";
+import { Fitted } from "./hardware";
+import { Holes, Led } from "./lights";
 import { solid } from "./parts";
-
-const big =
-  "font-extrabold tracking-[-0.05em] [overflow-wrap:anywhere] text-[clamp(64px,8.3vw,120px)] leading-[0.9]";
+import { Prose } from "./prose";
+import { sample } from "./story";
 
 type Free = NonNullable<ReturnType<typeof parsePath>>;
 
 const whose = ({ name, platform }: Free) =>
   platform === "x"
-    ? `If you're @${name} on X, it's yours: sign in with X.`
-    : `If you're ${name} on GitHub, it's yours: sign in with GitHub.`;
-
-const Slot = ({ handle }: { handle: string | null }) => (
-  <div className="flex w-full flex-col gap-2">
-    <div className="label flex h-14 items-center justify-center border-2 border-dashed border-ink md:h-18">
-      Empty
-    </div>
-    {handle !== null && (
-      <div className="label flex justify-between gap-4">
-        <span className="truncate">/{handle}</span>
-        <span className="text-muted">free</span>
-      </div>
-    )}
-  </div>
-);
+    ? `If you’re @${name} on X, it’s yours: sign in with X.`
+    : "If that’s your GitHub login, it’s yours: sign in with GitHub.";
 
 export const Missing = ({
   brand,
@@ -41,47 +29,59 @@ export const Missing = ({
 }) => (
   <div className="flex min-h-dvh flex-col">
     <Header here={brand} />
-    <main className="flex flex-1 flex-col justify-end px-6 pt-10 pb-12 md:min-h-[756px] md:px-16 md:pt-30 md:pb-32">
-      <div className="flex flex-col gap-5 md:gap-6">
-        <span className="label text-muted">
+    <main className="flex flex-1 flex-col lg:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col justify-end gap-6 px-5 pt-10 pb-14 md:px-16 md:pt-24 md:pb-24">
+        <span className="silk text-muted">
           {free === null ? "404 · Not found" : "Not claimed yet"}
         </span>
         {free === null ? (
-          <h1 className={big}>
-            Nothing in
-            <br />
-            this slot.
-          </h1>
+          <Fit as="h1" cap={120} lines={["Nothing in", "this slot."]} />
         ) : (
-          <h1 className="flex flex-col">
-            <span className="text-[clamp(32px,8.3vw,120px)] leading-[1] font-extrabold tracking-[-0.05em] whitespace-nowrap text-muted md:leading-[0.9]">
-              {domain(origin(brand))}/
-            </span>
-            <span className={big}>{free.path} is free.</span>
+          <h1 className="flex flex-col gap-1">
+            <Fit
+              as="span"
+              cap={64}
+              className="text-muted"
+              lines={[`${domain(origin(brand))}/`]}
+            />
+            <Fit as="span" cap={120} flow lines={[free.path, "is free."]} />
           </h1>
         )}
-        <div className="grid gap-5 md:grid-cols-[minmax(0,480px)_280px] md:justify-between md:gap-x-12 md:gap-y-6">
-          <p>
-            {free === null
-              ? "The link is wrong, or the page moved."
-              : `Nobody has this page yet. ${whose(free)}`}
-          </p>
-          <div className="md:col-start-2 md:row-span-2 md:row-start-1 md:self-end">
-            <Slot handle={free?.path ?? null} />
-          </div>
-          {free === null ? (
-            <Link className={`${solid} md:justify-self-start`} href="/">
-              Back home →
-            </Link>
-          ) : (
-            <a
-              className={`${solid} md:justify-self-start`}
-              href={`${origin("ram")}/sign-in`}
-            >
-              Claim it →
-            </a>
-          )}
-        </div>
+        <p className="max-w-[480px] text-[17px] [overflow-wrap:anywhere] md:text-xl">
+          <Prose
+            text={
+              free === null
+                ? "The link is wrong, or the page moved."
+                : `Nobody has this page yet. ${whose(free)}`
+            }
+          />
+        </p>
+        {free === null ? (
+          <Link className={`${solid} self-start`} href="/">
+            Back home
+          </Link>
+        ) : (
+          <a
+            className={`${solid} self-start`}
+            href={`${origin("ram")}/sign-in`}
+          >
+            Claim it
+          </a>
+        )}
+      </div>
+      <div className="relative flex min-h-[260px] flex-col items-center justify-center gap-5 bg-board px-5 py-12 text-silk lg:w-[42%] lg:shrink-0">
+        <Holes />
+        <Fitted
+          ask={sample[brand]}
+          className="w-[70%] max-w-[360px]"
+          light="open"
+        />
+        <span className="flex items-center gap-2.5">
+          <Led className="size-2.5" light="open" />
+          <span className="block max-w-[240px] truncate silk">
+            {free === null ? "404   EMPTY" : `/${free.path}   FREE`}
+          </span>
+        </span>
       </div>
     </main>
     <Footer here={brand} />

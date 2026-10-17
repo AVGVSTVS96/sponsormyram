@@ -12,7 +12,7 @@ export const SignOut = () => {
 
   return (
     <button
-      className="label h-11 text-muted hover:text-ink"
+      className="press self-start text-[15px] font-semibold link"
       disabled={pending}
       onClick={() => {
         start(async () => {

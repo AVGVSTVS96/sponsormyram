@@ -8,6 +8,9 @@ import { api } from "@/convex/_generated/api";
 import type { Item, Person } from "@/convex/people";
 import { title } from "@/lib/kinds";
 
+import { Bag, faceOf, Fitted } from "./hardware";
+import { X } from "./icons";
+import { Led } from "./lights";
 import { outline, reachOwner, solid, tellOwner, who } from "./parts";
 import { Providers } from "./providers";
 import { Card, Dialog, SignIn } from "./sheet";
@@ -18,7 +21,18 @@ interface Props {
   owner: Person;
 }
 
-const quiet = "self-start label text-muted underline-offset-4 hover:text-ink";
+const quiet = "press link self-start text-[15px] font-medium";
+
+const Art = ({ item, light }: { item: Item; light: "open" | "sending" }) => (
+  <div className="flex items-end gap-3">
+    <Led className="size-3.5" light={light} />
+    {light === "sending" ? (
+      <Bag className="w-[200px]" kind={faceOf(item)} />
+    ) : (
+      <Fitted ask={item} className="w-[220px]" light="open" />
+    )}
+  </div>
+);
 
 const Done = ({ item, onClose, owner }: Props) => {
   const unsend = useMutation(api.items.unsend);
@@ -27,23 +41,29 @@ const Done = ({ item, onClose, owner }: Props) => {
   const onX = owner.x !== undefined;
 
   return (
-    <Card heading="You're on it." label="Sponsor" onClose={onClose}>
-      <p>
-        Your handle is on {name}&apos;s {title(item)}. Tell them, then sort out
-        the address {onX ? "in DMs" : "through their GitHub"}.
+    <Card
+      art={<Art item={item} light="sending" />}
+      heading="You’re on it."
+      label="Sponsor"
+      onClose={onClose}
+    >
+      <p className="text-[17px]">
+        Your handle is on {name}’s {title(item)}. Tell them, then sort out the
+        address {onX ? "in X DMs" : "through their GitHub"}. When it lands they
+        turn it gold, and you get a thank-you&nbsp;post.
       </p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <a className={solid} href={tellOwner(owner, item)}>
-          Tell {name} on X →
+          <X /> Tell {name} on X
         </a>
         <a className={outline} href={reachOwner(owner)}>
-          {onX ? "DM for the address" : "Find them on GitHub"}
+          {onX ? `DM ${name} for the address` : "Find them on GitHub"}
         </a>
       </div>
-      <div className="label flex items-center justify-between gap-4 border-t border-rule pt-4 text-muted">
-        <span>Can&apos;t send it after all?</span>
+      <div className="flex items-center justify-between gap-4 border-t border-rule pt-4 text-[15px] text-muted">
+        <span>Can’t send it after all?</span>
         <button
-          className="text-ink underline underline-offset-4"
+          className={quiet}
           disabled={pending}
           onClick={() => {
             start(async () => {
@@ -68,15 +88,16 @@ const Confirm = ({ item, onClose, owner }: Props) => {
 
   return (
     <Card
-      heading={`Sending ${name} the ${title(item)}?`}
+      art={<Art item={item} light="open" />}
+      heading={`Send ${name} the ${title(item)}?`}
       label="Sponsor"
       onClose={onClose}
     >
-      <p>
-        Your handle goes on it in a gold outline, so nobody buys it twice.{" "}
-        {name} turns it gold when it lands.
+      <p className="text-[17px]">
+        Your handle goes on it in a gold outline, so nobody sends it twice.{" "}
+        {name} turns it gold when it&nbsp;lands.
       </p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <button
           className={solid}
           disabled={pending}
@@ -87,13 +108,13 @@ const Confirm = ({ item, onClose, owner }: Props) => {
           }}
           type="button"
         >
-          {pending ? "Saving…" : "I'm sending it →"}
+          {pending ? "Saving…" : "I’m sending it"}
         </button>
         <button className={outline} onClick={onClose} type="button">
           Not yet
         </button>
       </div>
-      <p className="label text-center text-muted">
+      <p className="text-[15px] text-muted">
         {error ??
           `The address stays ${owner.x === undefined ? "between you two" : "in X DMs"}. This site never asks.`}
       </p>
@@ -111,7 +132,7 @@ const Note = ({
   text: string;
 }) => (
   <Card heading={heading} label="Sponsor" onClose={onClose}>
-    <p>{text}</p>
+    <p className="text-[17px]">{text}</p>
     <button className={quiet} onClick={onClose} type="button">
       Close
     </button>
@@ -125,7 +146,7 @@ const Flow = (props: Props) => {
   if (state === undefined) {
     return (
       <Card heading="One second…" label="Sponsor" onClose={onClose}>
-        <span className="label text-muted">Checking who&apos;s on it</span>
+        <span className="text-[15px] text-muted">Checking who’s on it</span>
       </Card>
     );
   }
