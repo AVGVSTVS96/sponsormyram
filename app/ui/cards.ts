@@ -37,13 +37,23 @@ export const standing = (brand: Brand, page: Page) => {
   const filled = page.items.length - open;
   const short = shortOf(brand, page.items, page.user.rig).gb;
 
-  return short > 0
-    ? { corner: plural(open, "ask"), figure: size(short), title: "short." }
-    : {
-        corner: filled > 0 ? `${filled} filled` : "",
-        figure: String(open),
-        title: open === 1 ? "ask." : "asks.",
-      };
+  if (short > 0) {
+    return {
+      corner: plural(open, "ask"),
+      figure: size(short),
+      title: "short.",
+    };
+  }
+
+  if (open === 0 && filled > 0) {
+    return { corner: `${filled} filled`, figure: "", title: "All in." };
+  }
+
+  return {
+    corner: filled > 0 ? `${filled} filled` : "",
+    figure: String(open),
+    title: open === 1 ? "ask." : "asks.",
+  };
 };
 
 const list = async (here: Brand, handle: string): Promise<Card | null> => {

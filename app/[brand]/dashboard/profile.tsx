@@ -28,7 +28,7 @@ const Line = ({
   label: string;
 }) => (
   <label className="flex flex-col gap-2 md:flex-row md:items-start">
-    <span className="pt-3 label text-muted md:w-36 md:shrink-0">{label}</span>
+    <span className="label pt-3 text-muted md:w-36 md:shrink-0">{label}</span>
     <div className="min-w-0 flex-1">{children}</div>
   </label>
 );
@@ -79,7 +79,7 @@ const Linked = ({ user }: { user: Doc<"users"> }) => {
 
   return (
     <div className="flex flex-col">
-      <span className="pb-3 label text-muted">Signed in with</span>
+      <span className="label pb-3 text-muted">Signed in with</span>
       {rows.map((row) => (
         <div
           className="flex min-h-14 items-center gap-4 border-t border-rule py-2 last:border-b"
@@ -163,7 +163,7 @@ const Leave = () => {
         </div>
       ) : (
         <button
-          className="self-start label text-muted hover:text-ink"
+          className="label self-start text-muted hover:text-ink"
           onClick={() => {
             setSure(true);
           }}
@@ -254,7 +254,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
       </div>
       {rig === undefined ? (
         <button
-          className="h-14 rounded-chip border-2 border-dashed border-rule label text-muted transition-colors hover:border-ink hover:text-ink"
+          className="rounded-chip label h-14 border-2 border-dashed border-rule text-muted transition-colors hover:border-ink hover:text-ink"
           onClick={() => {
             setRig(blank);
           }}
@@ -292,7 +292,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
             </div>
           </Line>
           <div className="flex flex-col gap-2 md:flex-row md:items-start">
-            <span className="pt-3 label text-muted md:w-36 md:shrink-0">
+            <span className="label pt-3 text-muted md:w-36 md:shrink-0">
               Slots
             </span>
             <div className="flex flex-1 flex-col gap-3">
@@ -311,7 +311,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
                     type="button"
                   >
                     {gb === 0 ? (
-                      <span className="flex aspect-[220/56] w-full items-center justify-center border-2 border-dashed border-ink label">
+                      <span className="label flex aspect-[220/56] w-full items-center justify-center border-2 border-dashed border-ink">
                         Empty
                       </span>
                     ) : (
@@ -325,7 +325,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
                 <div className="flex gap-2 self-start">
                   <button
                     aria-label="Add a slot"
-                    className="size-9 rounded-chip border-2 border-rule font-bold hover:border-ink"
+                    className="rounded-chip size-9 border-2 border-rule font-bold hover:border-ink"
                     disabled={rig.slots.length >= 16}
                     onClick={() => {
                       setRig({ ...rig, slots: [...rig.slots, 0] });
@@ -336,7 +336,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
                   </button>
                   <button
                     aria-label="Remove the last slot"
-                    className="size-9 rounded-chip border-2 border-rule font-bold hover:border-ink"
+                    className="rounded-chip size-9 border-2 border-rule font-bold hover:border-ink"
                     disabled={rig.slots.length === 0}
                     onClick={() => {
                       setRig({ ...rig, slots: rig.slots.slice(0, -1) });
@@ -352,7 +352,7 @@ const RigEditor = ({ user }: { user: Doc<"users"> }) => {
                 64GB
               </span>
               <button
-                className="self-start label text-muted hover:text-ink"
+                className="label self-start text-muted hover:text-ink"
                 onClick={() => {
                   setRig(undefined);
                 }}

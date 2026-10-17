@@ -26,7 +26,7 @@ export const Sends = () => {
     <section className="border-t-2 border-ink px-6 py-12 md:px-16">
       <div className="flex items-baseline justify-between gap-4 pb-6">
         <h2 className="title">You&apos;re sending</h2>
-        <span className="hidden label text-muted md:block">
+        <span className="label hidden text-muted md:block">
           It turns gold when they confirm
         </span>
       </div>

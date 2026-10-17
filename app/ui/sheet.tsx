@@ -34,7 +34,7 @@ export const problem = (code: string | null) =>
 
 const Path = ({ name, path }: { name: string; path: string }) => (
   <div className="flex items-center gap-3 border-t border-rule py-2.5 last:border-b">
-    <span className="w-16 shrink-0 label text-muted">{name}</span>
+    <span className="label w-16 shrink-0 text-muted">{name}</span>
     <span className="font-mono text-sm text-muted">
       sponsormyram.com/<span className="text-ink">{path}</span>
     </span>
@@ -92,7 +92,7 @@ export const SignIn = ({ callbackURL }: { callbackURL: string }) => {
       ) : (
         <p className="label text-ink">{error}</p>
       )}
-      <div className="flex justify-between gap-4 label text-muted">
+      <div className="label flex justify-between gap-4 text-muted">
         <span>We never post for you.</span>
         <Link className="hover:text-ink" href="/privacy">
           Privacy
@@ -115,8 +115,8 @@ export const Card = ({
   note?: string;
   onClose: () => void;
 }) => (
-  <div className="flex w-full max-w-[440px] flex-col gap-5 rounded-sheet border-2 border-ink bg-paper p-6 md:p-8">
-    <div className="flex justify-between label">
+  <div className="rounded-sheet flex w-full max-w-[440px] flex-col gap-5 border-2 border-ink bg-paper p-6 md:p-8">
+    <div className="label flex justify-between">
       <span>{label}</span>
       <button
         className="label text-muted hover:text-ink"

@@ -14,7 +14,7 @@ export const Roll = ({ text }: { text: string }) => {
               key={parts.length - index}
             >
               <span
-                className="flex flex-col motion-safe:animate-roll motion-safe:transition-[translate] motion-safe:duration-(--spring-slow) motion-safe:ease-(--ease-spring)"
+                className="motion-safe:animate-roll flex flex-col motion-safe:transition-[translate] motion-safe:duration-(--spring-slow) motion-safe:ease-(--ease-spring)"
                 style={{ translate: `0 calc(${part} * -1lh)` }}
               >
                 {digits.map((digit) => (

@@ -2,20 +2,22 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import type { Item, Person } from "@/convex/people";
 import { brands, brandOf } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
-import { capacity, conditions, kindLabels, search, title } from "@/lib/kinds";
+import { capacity, search, title } from "@/lib/kinds";
 import { origin } from "@/lib/origin";
 
 import { installed } from "./rig";
 
-export const button = {
-  base: "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-chip px-4 font-bold whitespace-nowrap transition-colors md:h-10",
-  ghost: "border-2 border-ink hover:bg-ink hover:text-paper",
-  primary:
-    "border-2 border-ink bg-ink text-paper hover:bg-paper hover:text-ink",
-};
+const base =
+  "press inline-flex h-12 shrink-0 items-center justify-center gap-2.5 border-2 px-5 font-semibold whitespace-nowrap disabled:opacity-50";
 
-export const solid = `${button.base} ${button.primary}`;
-export const outline = `${button.base} ${button.ghost}`;
+export const solid = `${base} border-ink bg-ink text-paper hover:bg-paper hover:text-ink`;
+export const outline = `${base} border-ink hover:bg-ink hover:text-paper`;
+export const onBoard = `${base} border-silk bg-silk text-board hover:bg-transparent hover:text-silk`;
+export const onBoardGhost = `${base} border-silk text-silk hover:bg-silk hover:text-board`;
+export const onGreen = `${base} border-silk bg-silk text-green hover:bg-transparent hover:text-greenink`;
+export const onGreenGhost = `${base} border-greenink text-greenink hover:bg-greenink hover:text-green`;
+export const golden = `${base} border-gold bg-gold text-coal hover:bg-transparent hover:text-ink`;
+export const small = "h-10 px-4 text-[15px]";
 
 type Named = Pick<Person, "gh" | "handle" | "x">;
 
@@ -33,55 +35,38 @@ const tag = (person: Named) =>
     : who(person);
 
 const chip =
-  "label inline-flex h-6 max-w-full items-center rounded-chip px-2 whitespace-nowrap";
+  "inline-flex h-8 max-w-full shrink-0 items-center self-start px-3 text-sm font-semibold whitespace-nowrap";
 
-export const Chips = ({
+export const StateChip = ({
   item,
   lands = false,
 }: {
   item: Item;
   lands?: boolean;
 }) => {
-  const state = () => {
-    if (item.sponsor !== undefined) {
-      return (
-        <span
-          className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-stamp" : ""}`}
-        >
-          <span className="truncate">
-            {item.sponsor.by === null
-              ? "Filled"
-              : `Sponsored by ${who(item.sponsor.by)}`}
-          </span>
-        </span>
-      );
-    }
-
-    if (item.sending !== undefined) {
-      return (
-        <span className={`${chip} border-2 border-gold`}>
-          <span className="truncate">
-            {who(item.sending.by)} is sending this
-          </span>
-        </span>
-      );
-    }
-
+  if (item.sponsor !== undefined) {
     return (
-      <span className={`${chip} border border-ink`}>
-        {conditions[item.condition].chip}
+      <span
+        className={`${chip} bg-gold text-coal ${lands ? "motion-safe:animate-seat" : ""}`}
+      >
+        <span className="truncate">
+          {item.sponsor.by === null
+            ? "Sponsored"
+            : `Sponsored by ${who(item.sponsor.by)}`}
+        </span>
       </span>
     );
-  };
+  }
 
-  return (
-    <div className="flex min-w-0 flex-wrap gap-2">
-      <span className={`${chip} bg-ink text-paper`}>
-        {kindLabels[item.kind]}
+  if (item.sending !== undefined) {
+    return (
+      <span className={`${chip} border-2 border-gold`}>
+        <span className="truncate">{who(item.sending.by)} is sending this</span>
       </span>
-      {state()}
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export const number = (index: number) => String(index + 1).padStart(2, "0");

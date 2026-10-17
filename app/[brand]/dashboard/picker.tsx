@@ -79,7 +79,7 @@ const Row = ({
   label: string;
 }) => (
   <div className="flex flex-col gap-2 md:flex-row md:items-start md:gap-0">
-    <span className="pt-3 label text-muted md:w-36 md:shrink-0">{label}</span>
+    <span className="label pt-3 text-muted md:w-36 md:shrink-0">{label}</span>
     <div className="min-w-0 flex-1">{children}</div>
   </div>
 );
@@ -307,7 +307,7 @@ export const Picker = ({
         </Row>
         <SpecFields ask={ask} set={setAsk} />
         <Row label="How many">
-          <div className="inline-flex h-10 items-stretch rounded-chip border-2 border-ink">
+          <div className="rounded-chip inline-flex h-10 items-stretch border-2 border-ink">
             <button
               aria-label="One fewer"
               className="w-10 font-bold hover:bg-ink hover:text-paper"
@@ -378,7 +378,7 @@ export const Picker = ({
           </div>
           {onDelete !== undefined && (
             <button
-              className="self-start label text-muted hover:text-ink"
+              className="label self-start text-muted hover:text-ink"
               onClick={onDelete}
               type="button"
             >

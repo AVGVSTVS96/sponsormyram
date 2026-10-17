@@ -355,6 +355,14 @@ const recentSlots = 64;
 
 const open = ({ item }: { item: Item }) => item.sponsor === undefined;
 
+const lightOf = (item: Item) => {
+  if (item.sponsor !== undefined) {
+    return "filled" as const;
+  }
+
+  return item.sending === undefined ? ("open" as const) : ("sending" as const);
+};
+
 export const board = query({
   args: { kind: shelf },
   handler: async (ctx, args) => {
@@ -377,16 +385,23 @@ export const board = query({
       await ctx.db
         .query("items")
         .withIndex("by_kind", (q) => q.eq("kind", args.kind))
-        .take(20)
+        .take(40)
+    );
+
+    const lists = new Map(
+      oldest.flatMap((entry) =>
+        open(entry) ? [[entry.owner._id, entry.owner] as const] : []
+      )
     );
 
     return {
       feed: newest.slice(0, 6),
       first: oldest.find(open)?.owner ?? null,
       latest: newest.find(open)?.owner ?? null,
-      slots: newest
+      lists: [...lists.values()].slice(0, 10),
+      parts: newest
         .flatMap(({ item }) =>
-          Array.from({ length: item.count }, () => item.sponsor !== undefined)
+          Array.from({ length: item.count }, () => lightOf(item))
         )
         .slice(0, recentSlots)
         .toReversed(),

@@ -20,11 +20,11 @@ const whose = ({ name, platform }: Free) =>
 
 const Slot = ({ handle }: { handle: string | null }) => (
   <div className="flex w-full flex-col gap-2">
-    <div className="flex h-14 items-center justify-center border-2 border-dashed border-ink label md:h-18">
+    <div className="label flex h-14 items-center justify-center border-2 border-dashed border-ink md:h-18">
       Empty
     </div>
     {handle !== null && (
-      <div className="flex justify-between gap-4 label">
+      <div className="label flex justify-between gap-4">
         <span className="truncate">/{handle}</span>
         <span className="text-muted">free</span>
       </div>

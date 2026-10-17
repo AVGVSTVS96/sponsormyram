@@ -21,7 +21,7 @@ const DashboardPage = () => (
           <Link className="font-extrabold tracking-tight" href="/">
             sponsormyram
           </Link>
-          <span className="hidden label text-muted md:block">Dashboard</span>
+          <span className="label hidden text-muted md:block">Dashboard</span>
         </div>
         <SignOut />
       </header>

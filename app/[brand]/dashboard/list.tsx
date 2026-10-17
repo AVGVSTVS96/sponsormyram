@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
-import { Chips, number, thank, who } from "@/app/ui/parts";
+import { number, StateChip, thank, who } from "@/app/ui/parts";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { Item } from "@/convex/people";
@@ -60,7 +60,7 @@ const Toast = ({
   }, []);
 
   return (
-    <div className="fixed inset-x-0 bottom-6 z-10 mx-auto flex w-fit items-center gap-4 rounded-chip bg-ink px-4 py-3 label text-paper">
+    <div className="rounded-chip label fixed inset-x-0 bottom-6 z-10 mx-auto flex w-fit items-center gap-4 bg-ink px-4 py-3 text-paper">
       <span>Removed {title(item)}</span>
       <button
         className="text-gold hover:underline"
@@ -134,7 +134,7 @@ export const List = ({ handle }: { handle: string }) => {
             filled
           </span>
         </div>
-        <span className="hidden label text-muted md:block">
+        <span className="label hidden text-muted md:block">
           ↑ ↓ sets priority
         </span>
       </div>
@@ -167,16 +167,16 @@ export const List = ({ handle }: { handle: string }) => {
               className="flex flex-col gap-3 border-t border-rule py-5 lg:flex-row lg:items-center lg:gap-0"
               key={item._id}
             >
-              <span className="hidden label text-muted lg:block lg:w-16">
+              <span className="label hidden text-muted lg:block lg:w-16">
                 {number(index)}
               </span>
               <span
-                className={`flex-1 title ${item.sponsor === undefined ? "" : "text-muted"}`}
+                className={`title flex-1 ${item.sponsor === undefined ? "" : "text-muted"}`}
               >
                 {title(item)}
               </span>
               <div className="lg:w-96">
-                <Chips item={item} lands={item._id === landed} />
+                <StateChip item={item} lands={item._id === landed} />
               </div>
               <div className="-mx-2.5 flex flex-wrap items-center lg:mx-0 lg:w-80 lg:flex-nowrap lg:justify-end lg:gap-5">
                 {item.sponsor === undefined || item.sponsor.by === null ? (
@@ -191,7 +191,7 @@ export const List = ({ handle }: { handle: string }) => {
                   </button>
                 ) : (
                   <a
-                    className="mx-2.5 inline-flex h-9 items-center rounded-chip border-2 border-ink bg-ink px-3 text-sm font-bold whitespace-nowrap text-paper transition-colors hover:bg-paper hover:text-ink lg:mx-0 lg:h-8"
+                    className="rounded-chip mx-2.5 inline-flex h-9 items-center border-2 border-ink bg-ink px-3 text-sm font-bold whitespace-nowrap text-paper transition-colors hover:bg-paper hover:text-ink lg:mx-0 lg:h-8"
                     href={thank(handle, item, item.sponsor.by, item.sponsor.at)}
                   >
                     Thank {who(item.sponsor.by)}
@@ -285,7 +285,7 @@ export const List = ({ handle }: { handle: string }) => {
         <div className="grid grid-cols-1 gap-2 border-t-2 border-ink pt-6 sm:grid-cols-2 md:grid-cols-4">
           {adds.map(([kind, label]) => (
             <button
-              className="h-14 rounded-chip border-2 border-dashed border-rule label text-muted transition-colors hover:border-ink hover:text-ink"
+              className="rounded-chip label h-14 border-2 border-dashed border-rule text-muted transition-colors hover:border-ink hover:text-ink"
               key={kind}
               onClick={() => {
                 setEditing({ kind, type: "new" });

@@ -75,7 +75,7 @@ export const Slot = ({
 
   return filled ? (
     <span
-      className="inline-flex motion-safe:animate-drop"
+      className="motion-safe:animate-drop inline-flex"
       style={{ animationDelay: `${order * 12}ms` }}
     >
       <Glyph className={slotSize[brand]} />

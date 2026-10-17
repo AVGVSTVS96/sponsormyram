@@ -175,6 +175,50 @@ export const title = (item: Ask) => {
   return `${times}${item.title}`;
 };
 
+export const titleLines = (item: Ask) => {
+  const times = item.count > 1 ? `${item.count}× ` : "";
+
+  if (item.kind === "ram") {
+    const speed = item.speed === undefined ? "" : `-${item.speed}`;
+    const suffix = ramForms[item.form].suffix.trim();
+
+    return [
+      `${times}${size(item.gb)}`,
+      `${item.gen}${speed}`,
+      ...(suffix === "" ? [] : [suffix]),
+    ];
+  }
+
+  if (item.kind === "ssd") {
+    return [`${times}${size(item.gb)}`, ssdForms[item.form].title];
+  }
+
+  if (item.kind === "hdd") {
+    return [`${times}${size(item.gb)}`, `${item.form}″ HDD`];
+  }
+
+  const [first = "", ...rest] = item.title.trim().split(/\s+/u);
+
+  return [`${times}${first}`, ...rest];
+};
+
+const sentence = (text: string) =>
+  `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
+
+export const specLine = (item: Ask) => {
+  const fine = sentence(conditions[item.condition].spec);
+
+  if (item.kind === "ram") {
+    return `${sentence(ramForms[item.form].spec)} ${fine}`;
+  }
+
+  if (item.kind === "ssd") {
+    return `${sentence(ssdForms[item.form].spec)} ${fine}`;
+  }
+
+  return item.kind === "hdd" ? `${item.form}″ drive. ${fine}` : fine;
+};
+
 export const search = (item: Ask) => {
   if (item.kind === "other") {
     return item.title;

@@ -27,7 +27,7 @@ export const Legal = async ({
               className="flex flex-col gap-1.5 border-t border-rule py-4 md:flex-row md:gap-0"
               key={term}
             >
-              <dt className="pt-1 label text-muted md:w-56 md:shrink-0">
+              <dt className="label pt-1 text-muted md:w-56 md:shrink-0">
                 {term}
               </dt>
               <dd className="max-w-[620px]">{detail}</dd>

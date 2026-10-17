@@ -18,7 +18,7 @@ const Face = ({
   shown: string;
 }) => (
   <>
-    <span className="flex justify-between gap-4 label">
+    <span className="label flex justify-between gap-4">
       <span>{label}</span>
       <span className="text-muted group-hover:text-paper">{corner}</span>
     </span>
@@ -42,12 +42,12 @@ const Sheet = ({
   warn: string;
 }) => (
   <div
-    className="m-auto w-[calc(100%-48px)] max-w-[400px] rounded-sheet border-2 border-ink bg-paper p-6 text-ink backdrop:bg-coal/45 motion-safe:transition-[opacity,scale] motion-safe:duration-(--spring-fast) motion-safe:ease-(--ease-spring) md:p-8 motion-safe:starting:open:scale-95 motion-safe:starting:open:opacity-0"
+    className="rounded-sheet m-auto w-[calc(100%-48px)] max-w-[400px] border-2 border-ink bg-paper p-6 text-ink backdrop:bg-coal/45 motion-safe:transition-[opacity,scale] motion-safe:duration-(--spring-fast) motion-safe:ease-(--ease-spring) md:p-8 motion-safe:starting:open:scale-95 motion-safe:starting:open:opacity-0"
     id={id}
     popover="auto"
   >
     <div className="flex flex-col gap-5">
-      <div className="flex justify-between gap-4 label">
+      <div className="label flex justify-between gap-4">
         <span>
           {label} · {owner}
         </span>
@@ -60,14 +60,14 @@ const Sheet = ({
           Esc
         </button>
       </div>
-      <div className="hidden overflow-hidden rounded-chip border-2 border-ink md:block">
+      <div className="rounded-chip hidden overflow-hidden border-2 border-ink md:block">
         <Qr value={qr} />
       </div>
       <p className="font-mono text-lg font-bold break-all">{to}</p>
       <Copy className={solid} text={to}>
         Copy
       </Copy>
-      <p className="text-center label text-muted">{warn}</p>
+      <p className="label text-center text-muted">{warn}</p>
     </div>
   </div>
 );

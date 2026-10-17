@@ -40,7 +40,7 @@ const Done = ({ item, onClose, owner }: Props) => {
           {onX ? "DM for the address" : "Find them on GitHub"}
         </a>
       </div>
-      <div className="flex items-center justify-between gap-4 border-t border-rule pt-4 label text-muted">
+      <div className="label flex items-center justify-between gap-4 border-t border-rule pt-4 text-muted">
         <span>Can&apos;t send it after all?</span>
         <button
           className="text-ink underline underline-offset-4"
@@ -93,7 +93,7 @@ const Confirm = ({ item, onClose, owner }: Props) => {
           Not yet
         </button>
       </div>
-      <p className="text-center label text-muted">
+      <p className="label text-center text-muted">
         {error ??
           `The address stays ${owner.x === undefined ? "between you two" : "in X DMs"}. This site never asks.`}
       </p>

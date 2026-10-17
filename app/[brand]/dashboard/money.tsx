@@ -34,7 +34,7 @@ const Note = ({ pay }: { pay: PayTo }) => {
 
     return (
       <a
-        className="self-start label [overflow-wrap:anywhere] text-muted hover:text-ink"
+        className="label self-start [overflow-wrap:anywhere] text-muted hover:text-ink"
         href={url}
         rel="noreferrer"
         target="_blank"
@@ -66,7 +66,7 @@ const Row = ({
 
   return (
     <div className="flex flex-col gap-2 md:flex-row md:items-start">
-      <span className="pt-3 label text-muted md:w-36 md:shrink-0">
+      <span className="label pt-3 text-muted md:w-36 md:shrink-0">
         {way.label}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -100,7 +100,7 @@ const Row = ({
           </label>
           <button
             aria-label={`Take ${way.label} off my page`}
-            className="size-11 shrink-0 rounded-chip border-2 border-rule font-bold transition-colors hover:border-ink"
+            className="rounded-chip size-11 shrink-0 border-2 border-rule font-bold transition-colors hover:border-ink"
             onClick={onRemove}
             type="button"
           >
@@ -164,7 +164,7 @@ export const Money = ({ user }: { user: Doc<"users"> }) => {
         <div className="grid grid-cols-2 gap-2 pt-2 md:grid-cols-4">
           {open.map((method) => (
             <button
-              className="h-14 rounded-chip border-2 border-dashed border-rule px-2 label text-muted transition-colors hover:border-ink hover:text-ink"
+              className="rounded-chip label h-14 border-2 border-dashed border-rule px-2 text-muted transition-colors hover:border-ink hover:text-ink"
               key={method}
               onClick={() => {
                 setFocus(method);
