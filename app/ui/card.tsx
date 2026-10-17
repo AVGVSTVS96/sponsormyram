@@ -204,7 +204,7 @@ const Readout = ({
 const Sponsor = ({ url }: { url: string }) => {
   const href = `https://${url.replace(/^https?:\/\//u, "")}`;
   const code = barcode(href);
-  const step = code.width * 2 <= 760 ? 2 : 1;
+  const step = code.width * 2 <= 1000 ? 2 : 1;
 
   return (
     <div
