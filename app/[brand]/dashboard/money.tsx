@@ -97,7 +97,7 @@ const Row = ({
         <label
           className={`flex h-12 min-w-0 items-center border-2 px-3.5 ${on ? "border-ink bg-paper focus-within:border-gold" : "border-rule"}`}
         >
-          {way.prefix !== "" && (
+          {on && way.prefix !== "" && (
             <span
               className={`shrink-0 text-muted ${way.prefix.length > 1 ? "hidden sm:inline" : ""}`}
             >

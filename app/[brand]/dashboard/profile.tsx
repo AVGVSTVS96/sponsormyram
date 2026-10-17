@@ -342,10 +342,10 @@ export const RigEditor = ({ user }: { user: Doc<"users"> }) => {
               >
                 −
               </button>
-              <span className="pl-2 text-[15px] text-silksub">
-                Empty → 4 → 8 → 16 → 32 → 48 → 64GB
-              </span>
             </div>
+            <p className="text-[15px] text-silksub">
+              Each tap: empty, 4, 8, 16, 32, 48, then&nbsp;64GB.
+            </p>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-5">
             <label className="flex flex-col gap-2">
