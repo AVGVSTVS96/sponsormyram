@@ -17,7 +17,7 @@ const glue = (text: string) => {
     : joined;
 };
 
-const whole = /(?<token>\S*\d\S*-\S+|\S+-\S*\d\S*)/gu;
+const whole = /(?<token>\S+-\S+)/gu;
 
 export const Prose = ({ text }: { text: string }) =>
   glue(text)

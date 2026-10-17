@@ -1,6 +1,7 @@
 import { Fit } from "./fit";
 import { Footer, Header } from "./frame";
 import { here } from "./here";
+import { Prose } from "./prose";
 
 export const Legal = async ({
   intro,
@@ -21,7 +22,9 @@ export const Legal = async ({
           <span className="silk text-muted">{title} · Oct 2026</span>
           <Fit as="h1" cap={120} lines={[`${title}.`]} />
           {intro !== undefined && (
-            <p className="max-w-[620px] text-[17px] md:text-xl">{intro}</p>
+            <p className="max-w-[620px] text-[17px] md:text-xl">
+              <Prose text={intro} />
+            </p>
           )}
         </div>
         <dl className="flex flex-col border-t border-rule md:max-w-[968px]">
@@ -31,7 +34,9 @@ export const Legal = async ({
               key={term}
             >
               <dt className="font-semibold md:w-56 md:shrink-0">{term}</dt>
-              <dd className="max-w-[620px] text-[17px]">{detail}</dd>
+              <dd className="max-w-[620px] text-[17px]">
+                <Prose text={detail} />
+              </dd>
             </div>
           ))}
         </dl>

@@ -9,7 +9,14 @@ import { Close, Footer, Header } from "@/app/ui/frame";
 import { Bag, DimmTop, faceOf, Fitted, lightOf } from "@/app/ui/hardware";
 import { here } from "@/app/ui/here";
 import { GitHub, X } from "@/app/ui/icons";
-import { Holes, Led, Lights, Readout, readout } from "@/app/ui/lights";
+import {
+  Holes,
+  Led,
+  Lights,
+  lightWords,
+  Readout,
+  readout,
+} from "@/app/ui/lights";
 import {
   onBoard,
   onBoardGhost,
@@ -24,7 +31,7 @@ import { sample, story } from "@/app/ui/story";
 import type { Item, Person } from "@/convex/people";
 import { brandList, brandOf, brands, domain } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
-import { kindLabels, size } from "@/lib/kinds";
+import { kindLabels, size, title } from "@/lib/kinds";
 import { origin } from "@/lib/origin";
 
 export const ensureStatic = "navigation";
@@ -54,16 +61,26 @@ const Owner = ({ person }: { person: Person }) => (
   </span>
 );
 
-const Shelf = ({ brand, items }: { brand: Brand; items: Item[] }) => (
-  <div className="flex w-full max-w-[420px] flex-col gap-5">
-    {items.slice(0, 4).map((item) => (
-      <div className="flex items-center gap-3" key={item._id}>
-        <Led light={lightOf(item)} />
-        <Fitted
-          ask={item}
-          className={brand === "hdd" ? "h-24" : "h-14"}
-          light={lightOf(item)}
-        />
+const shelfSize = (item: Item) => {
+  if (lightOf(item) === "sending") {
+    return "w-[220px] lg:w-[250px]";
+  }
+
+  return faceOf(item) === "ssd"
+    ? "w-[280px] lg:w-[340px]"
+    : "w-[170px] lg:w-[210px]";
+};
+
+const Shelf = ({ items }: { items: Item[] }) => (
+  <div className="flex flex-col gap-7">
+    {items.slice(0, 3).map((item) => (
+      <div className="flex flex-col gap-3" key={item._id}>
+        <Fitted ask={item} className={shelfSize(item)} light={lightOf(item)} />
+        <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <Led className="size-2.5" light={lightOf(item)} />
+          <span className="text-sm font-semibold">{title(item)}</span>
+          <span className="silk text-silksub">{lightWords[lightOf(item)]}</span>
+        </span>
       </div>
     ))}
   </div>
@@ -115,7 +132,6 @@ const Panel = ({ brand, page }: { brand: Brand; page: Page | null }) => {
           />
         ) : (
           <Shelf
-            brand={brand}
             items={(page?.items ?? []).filter(
               (item) => brandOf(item.kind) === brand
             )}

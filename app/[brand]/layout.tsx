@@ -1,6 +1,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 
 import { here } from "@/app/ui/here";
 import { brandList, brands } from "@/lib/brand";
@@ -34,13 +35,22 @@ export const generateMetadata = async (): Promise<Metadata> => {
 export const viewport: Viewport = {
   themeColor: [
     { color: "#ffffff", media: "(prefers-color-scheme: light)" },
-    { color: "#0a0a0a", media: "(prefers-color-scheme: dark)" },
+    { color: "#000000", media: "(prefers-color-scheme: dark)" },
   ],
 };
 
+const power = `try{const html=document.documentElement;if(sessionStorage.getItem("powered"))html.dataset.powered="";sessionStorage.setItem("powered","1");setTimeout(()=>{html.dataset.powered=""},700)}catch{}`;
+
 const RootLayout = ({ children }: LayoutProps<"/[brand]">) => (
-  <html className={`${sans.variable} ${mono.variable}`} lang="en">
+  <html
+    className={`${sans.variable} ${mono.variable}`}
+    lang="en"
+    suppressHydrationWarning
+  >
     <body className="font-sans text-base leading-normal">
+      <Script id="power" strategy="beforeInteractive">
+        {power}
+      </Script>
       {children}
       <Analytics />
     </body>
