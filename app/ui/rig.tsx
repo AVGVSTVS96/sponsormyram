@@ -13,6 +13,20 @@ type Rig = NonNullable<Doc<"users">["rig"]>;
 export const slotName = (index: number) =>
   `${String.fromCodePoint(65 + Math.floor(index / 2))}${(index % 2) + 1}`;
 
+export const portOf = (item: Item, rig?: Rig) => {
+  if (item.kind === "ram") {
+    const free = rig?.slots.indexOf(0) ?? -1;
+
+    return free === -1 ? "DIMM" : `DIMM_${slotName(free)}`;
+  }
+
+  if (item.kind === "ssd") {
+    return item.form === "nvme" ? "M.2" : "SATA6G";
+  }
+
+  return item.kind === "hdd" ? "SATA6G" : "PCIEX16";
+};
+
 export const installed = (rig: Rig) =>
   rig.slots.reduce((sum, gb) => sum + gb, 0);
 
@@ -109,14 +123,6 @@ const Meter = ({ rig }: { rig: Rig }) => {
       </p>
     </div>
   );
-};
-
-const portOf = (item: Item) => {
-  if (item.kind === "ssd") {
-    return item.form === "nvme" ? "M.2" : "SATA6G";
-  }
-
-  return item.kind === "hdd" ? "SATA6G" : "PCIEX16";
 };
 
 const captions = {

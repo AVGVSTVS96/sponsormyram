@@ -5,6 +5,7 @@ import type { Brand } from "@/lib/brand";
 import { capacity, search, title } from "@/lib/kinds";
 import { origin } from "@/lib/origin";
 
+import type { Debug } from "./lights";
 import { installed } from "./rig";
 
 const base =
@@ -160,4 +161,14 @@ export const shortOf = (
         ),
         rig: false,
       };
+};
+
+export const debugFor = (
+  brand: Brand,
+  page: { items: Item[]; user: { rig?: Doc<"users">["rig"] } }
+) => {
+  const short = shortOf(brand, page.items, page.user.rig).gb;
+  const lit: Debug = short > 0 && brand === "ram" ? "DRAM" : "BOOT";
+
+  return { lit, tone: short === 0 ? ("green" as const) : ("red" as const) };
 };

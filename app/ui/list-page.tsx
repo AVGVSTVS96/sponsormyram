@@ -10,9 +10,8 @@ import { lightOf } from "@/app/ui/hardware";
 import { here } from "@/app/ui/here";
 import { GitHub, X } from "@/app/ui/icons";
 import { Lights } from "@/app/ui/lights";
-import type { Debug } from "@/app/ui/lights";
 import { Missing } from "@/app/ui/missing";
-import { lead, outline, postList, shortOf, solid, who } from "@/app/ui/parts";
+import { debugFor, lead, outline, postList, solid, who } from "@/app/ui/parts";
 import { ChipIn } from "@/app/ui/pay";
 import { Prose } from "@/app/ui/prose";
 import { RigBoard } from "@/app/ui/rig";
@@ -52,13 +51,6 @@ export const listMetadata = async (handle: string): Promise<Metadata> => {
     robots: user.hidden ? { index: false } : undefined,
     title: `${owner} · Sponsor my ${brands[brand].word}`,
   };
-};
-
-export const debugFor = (brand: Brand, page: Page) => {
-  const short = shortOf(brand, page.items, page.user.rig).gb;
-  const lit: Debug = short > 0 && brand === "ram" ? "DRAM" : "BOOT";
-
-  return { lit, tone: short === 0 ? ("green" as const) : ("red" as const) };
 };
 
 const Stat = ({ count, label }: { count: number; label: string }) => (

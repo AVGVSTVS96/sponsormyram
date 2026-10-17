@@ -28,7 +28,7 @@ import {
   who,
 } from "@/app/ui/parts";
 import { Prose } from "@/app/ui/prose";
-import { slotName } from "@/app/ui/rig";
+import { portOf } from "@/app/ui/rig";
 import { Cell } from "@/app/ui/rows";
 import { Sponsor } from "@/app/ui/sponsor";
 import type { Item } from "@/convex/people";
@@ -66,20 +66,6 @@ export const itemMetadata = async (
     robots: user.hidden ? { index: false } : undefined,
     title: `${title(item)} · Sponsor my ${brands[brandOf(item.kind)].word}`,
   };
-};
-
-const portOf = (item: Item, owner: Owner) => {
-  if (item.kind === "ram") {
-    const free = owner.rig?.slots.indexOf(0) ?? -1;
-
-    return free === -1 ? "DIMM" : `DIMM_${slotName(free)}`;
-  }
-
-  if (item.kind === "ssd") {
-    return item.form === "nvme" ? "M.2" : "SATA6G";
-  }
-
-  return item.kind === "hdd" ? "SATA6G" : "PCIEX16";
 };
 
 const Art = ({ item, light }: { item: Item; light: Light }) => {
@@ -130,7 +116,7 @@ const Stage = ({ item, owner }: { item: Item; owner: Owner }) => {
         <span
           className={`silk text-xs ${light === "sending" ? "text-gold" : "text-silk"}`}
         >
-          {portOf(item, owner)}&nbsp;&nbsp;&nbsp;
+          {portOf(item, owner.rig)}&nbsp;&nbsp;&nbsp;
           {lightWords[light].toUpperCase()}
         </span>
       </span>

@@ -1,34 +1,22 @@
 import "server-only";
 import { createHash } from "node:crypto";
 
-import { brandOf, brands, domain } from "@/lib/brand";
+import { brandOf, domain } from "@/lib/brand";
 import type { Brand } from "@/lib/brand";
-import { conditions, size, title } from "@/lib/kinds";
+import { conditions, size, title, titleLines } from "@/lib/kinds";
 import { origin } from "@/lib/origin";
 
 import type { Card } from "./card";
 import { askOf, boardOf, listOf } from "./data";
-import { lead, number, plural, shortOf, who } from "./parts";
+import { faceOf, lightOf } from "./hardware";
+import { readout } from "./lights";
+import { debugFor, lead, plural, shortOf, who } from "./parts";
+import { installed, portOf } from "./rig";
 
 export const coldLists = 10;
 
 const stamp = (at: number) =>
   new Date(at).toLocaleDateString("en-US", { day: "numeric", month: "short" });
-
-const landing = async (brand: Brand): Promise<Card> => {
-  const { totals } = await boardOf(brand);
-  const cold = totals.lists < coldLists;
-
-  return {
-    brand,
-    corner: cold ? "" : plural(totals.open, "ask"),
-    footer: cold
-      ? "List what your rig is short on"
-      : `Collectively short ${size(totals.short)}`,
-    title: `Sponsor my ${brands[brand].word}.`,
-    top: domain(origin(brand)),
-  };
-};
 
 type Page = NonNullable<Awaited<ReturnType<typeof listOf>>>;
 
@@ -56,6 +44,20 @@ export const standing = (brand: Brand, page: Page) => {
   };
 };
 
+const landing = async (brand: Brand): Promise<Card> => {
+  const { totals } = await boardOf(brand);
+  const { figure, unit } = readout(size(totals.short));
+
+  return {
+    brand,
+    figure,
+    kind: "site",
+    lists: plural(totals.lists, "list"),
+    unit,
+    url: domain(origin(brand)),
+  };
+};
+
 const list = async (here: Brand, handle: string): Promise<Card | null> => {
   const page = await listOf(handle);
 
@@ -64,8 +66,27 @@ const list = async (here: Brand, handle: string): Promise<Card | null> => {
   }
 
   const brand = lead(here, page.items);
+  const head = standing(brand, page);
+  const short = shortOf(brand, page.items, page.user.rig);
+  const { rig } = page.user;
+  const { figure, unit } = readout(size(short.gb));
 
-  return { brand, ...standing(brand, page), top: who(page.user) };
+  return {
+    brand,
+    ...debugFor(brand, page),
+    figure: short.gb > 0 ? figure : "",
+    kind: "list",
+    lines: head.figure === "" ? [head.title] : [head.figure, head.title],
+    rig:
+      brand === "ram" && rig !== undefined && rig.slots.length > 0
+        ? [rig.board, `${installed(rig)} of ${rig.maxGB}GB installed`].flatMap(
+            (line) => (line === "" ? [] : [line.toUpperCase()])
+          )
+        : [`${unit} short`],
+    url: `${domain(origin(brand))}/${page.user.handle}`,
+    who: who(page.user),
+    x: page.user.x !== undefined,
+  };
 };
 
 const ask = async (handle: string, slug: string): Promise<Card | null> => {
@@ -76,31 +97,27 @@ const ask = async (handle: string, slug: string): Promise<Card | null> => {
   }
 
   const { user } = loaded;
-  const { index, item } = loaded.found;
+  const { item } = loaded.found;
   const brand = brandOf(item.kind);
-  const owner = who(user);
+  const light = lightOf(item);
+  const url = `${domain(origin(brand))}/${user.handle}`;
 
-  const footer = () => {
-    if (item.sponsor !== undefined) {
-      return `${owner} got this`;
-    }
-
-    return item.sending === undefined
-      ? `${owner} needs this · ${conditions[item.condition].chip}`
-      : `${who(item.sending.by)} is sending this`;
-  };
+  const by =
+    item.sponsor?.by ?? (item.sending === undefined ? null : item.sending.by);
 
   return {
+    at: item.sponsor === undefined ? "" : stamp(item.sponsor.at).toUpperCase(),
     brand,
-    corner: `Ask ${number(index)}`,
-    done: item.sponsor !== undefined,
-    footer: footer(),
-    stamp:
-      item.sponsor === undefined
-        ? undefined
-        : `${item.sponsor.by === null ? "Filled" : `By ${who(item.sponsor.by)}`} · ${stamp(item.sponsor.at)}`,
+    by: by === null ? "" : who(by),
+    face: faceOf(item),
+    kind: "ask",
+    light,
+    lines: titleLines(item),
+    need: `${conditions[item.condition].spec}.`,
+    port: portOf(item, user.rig),
     title: title(item),
-    top: domain(origin(brand)),
+    url,
+    who: who(user),
   };
 };
 

@@ -148,6 +148,43 @@ const cellsOf = (text: string) =>
     char === "." ? [] : [{ char, dot: all[index + 1] === "." }]
   );
 
+export const display = (text: string) => {
+  const cells = cellsOf(text);
+
+  return {
+    segs: cells.flatMap(({ char, dot }, index) => {
+      const left = index * (W + 9);
+      const lit = glyph.get(char) ?? "";
+
+      const parts = order.map((name) => ({
+        key: `${index}${name}`,
+        on: lit.includes(name),
+        points: points(segments[name], left),
+      }));
+
+      return dot
+        ? [
+            ...parts,
+            {
+              key: `${index}dot`,
+              on: true,
+              points: points(
+                [
+                  [W + 1.6, H - T],
+                  [W + 1.6 + T, H - T],
+                  [W + 1.6 + T, H],
+                  [W + 1.6, H],
+                ],
+                left
+              ),
+            },
+          ]
+        : parts;
+    }),
+    width: cells.length * (W + 9) - 9 + H * SKEW,
+  };
+};
+
 export const Readout = ({
   className = "h-16",
   frame = "px-4 py-3",
@@ -159,8 +196,7 @@ export const Readout = ({
   text: string;
   tone?: "green" | "red";
 }) => {
-  const cells = cellsOf(text);
-  const width = cells.length * (W + 9) - 9 + H * SKEW;
+  const { segs, width } = display(text);
 
   return (
     <span className={`inline-flex shrink-0 self-start bg-glass ${frame}`}>
@@ -170,36 +206,13 @@ export const Readout = ({
         className={`w-auto ${className}`}
         viewBox={`0 0 ${width.toFixed(1)} ${H}`}
       >
-        {cells.map(({ char, dot }, index) => {
-          const left = index * (W + 9);
-          const lit = glyph.get(char) ?? "";
-
-          return (
-            <g key={`${index}-${char}`}>
-              {order.map((name) => (
-                <polygon
-                  className={lit.includes(name) ? fills[tone].fill : "fill-seg"}
-                  key={name}
-                  points={points(segments[name], left)}
-                />
-              ))}
-              {dot && (
-                <polygon
-                  className={fills[tone].fill}
-                  points={points(
-                    [
-                      [W + 1.6, H - T],
-                      [W + 1.6 + T, H - T],
-                      [W + 1.6 + T, H],
-                      [W + 1.6, H],
-                    ],
-                    left
-                  )}
-                />
-              )}
-            </g>
-          );
-        })}
+        {segs.map((seg) => (
+          <polygon
+            className={seg.on ? fills[tone].fill : "fill-seg"}
+            key={seg.key}
+            points={seg.points}
+          />
+        ))}
       </svg>
     </span>
   );
