@@ -14,7 +14,7 @@ interface Entry {
 const directivePattern =
   /^(?:oxlint-(?:disable|enable)(?:-next-line|-line)?\b|@effect-diagnostics\b|@ts-(?:expect-error|ignore|nocheck)\b|\/ <reference )/u;
 
-const safetyPattern = /^(?:SAFETY|WORKAROUND):\s*\S/u;
+const safetyPattern = /^(?:WHY|SAFETY|WORKAROUND):\s*\S/u;
 
 const scriptFilePattern = /\.[cm]?js$/u;
 
@@ -265,12 +265,12 @@ const noComments = defineRule({
   meta: {
     docs: {
       description:
-        "Ban comments. Tool directives (reason after --), one-line SAFETY invariants, and JSDoc type tags in plain JS remain.",
+        "Comments only for what the code can't show: tool directives (reason after --), one-line WHY:, SAFETY: and WORKAROUND: lines, and JSDoc type tags in plain JS remain.",
     },
     fixable: "code",
     messages: {
       comment:
-        "Comments are banned. Say it in a name, a type, a test, or the commit. Tool directives carry their reason after --; a type assertion takes a one-line SAFETY: invariant.",
+        "Say it in a name, a type, a test, or the commit. A comment is only for what the code can't show: a one-line WHY: for a decision or fact, a SAFETY: invariant for a type assertion, a tool directive with its reason after --.",
     },
     type: "problem",
   },

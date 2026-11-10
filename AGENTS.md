@@ -24,7 +24,7 @@ One app behind three brands: sponsormyram, sponsormyssd and sponsormyhdd. The ho
 
 | Rule | Enforced by |
 | --- | --- |
-| No prose comments (SAFETY:/WORKAROUND: only) | `no-comments/no-comments` |
+| Comments only for a decision or fact the code can't show (one `WHY:`, `SAFETY:` or `WORKAROUND:` line, or a lint directive) | `no-comments/no-comments` |
 | Parse at the boundary, no `as` or `unknown` leaks | anti-slop + type-aware `typescript/*` |
 | Every Convex function validates its args | `convex/require-args-validator` |
 | Env is declared in `convex/convex.config.ts`, not read ad hoc | `convex/no-process-env` |
